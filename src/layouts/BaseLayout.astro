@@ -1,13 +1,14 @@
 ---
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import Main from '../components/Main.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import Main from '@/components/Main.astro';
+import me from '@/images/me.jpg'
 import '../app.css';
 
 const title = "ErpanOmer | Home Page | Web Developer";
 const description = "一个致力于 Web前端的个人主页，展示我的技能、项目和博客。";
 const keywords = "ErpanOmer, Web前端工程师, Web性能, 算法学习, 前端开发, 博客";
-const icon = new URL('/me.avif', Astro.url.origin);
+const icon = new URL('/favicon.ico', Astro.url.origin);
 const url = new URL(Astro.url);
 const lang = 'zh-cn'
 ---
@@ -22,13 +23,16 @@ const lang = 'zh-cn'
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content={title}>
     <meta property="og:description" content={description}>
-    <meta property="og:image" content={icon}>
+    <meta property="og:image" content={me.src}>
     <meta property="og:url" content={url}>
     <meta property="og:type" content="website">
     <meta property="og:site_name" content={title}>
     <meta property="og:locale" content={lang}>
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link rel="icon" type="image/avif" href={icon} />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <title>{title}</title>
   </head>
   <body>
