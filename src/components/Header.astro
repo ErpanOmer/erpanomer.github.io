@@ -1,0 +1,26 @@
+---
+import { Image } from "astro:assets"
+import Github from '@/images/github.svg'
+import Juejin from '@/images/juejin.svg'
+import leetcode from '@/images/leetcode.png'
+import me from '@/images/me.jpg'
+---
+
+<header class="flex flex-col border-b border-b-stone-700">
+    <nav class="max-w-screen-lg px-8 mx-auto flex space-x-4 items-center w-full h-16">
+        <a href="/" class="flex items-center space-x-2 text-sm">
+            <Image src={me} width="32" class="rounded-full hover:animate-spin" alt="ErpanOmer"/>
+            <span>我的个人主页</span>
+        </a>
+        <span class="flex-1"></span>
+        <a href="https://juejin.cn/user/3878732754331096" class="hover:animate-spin" title="稀土掘金" target="_blank" rel="noopener noreferrer">
+            <Juejin/>
+        </a>
+        <a href="https://leetcode.cn/u/erpan/" class="hover:animate-spin" title="leetcode" target="_blank" rel="noopener noreferrer">
+            <Image src={leetcode} width="32" alt="leetcode"/>
+        </a>
+        <a href="https://github.com/ErpanOmer" class="hover:animate-spin" title="github" target="_blank" rel="noopener noreferrer">
+            <Github/>
+        </a>
+    </nav>
+</header>
