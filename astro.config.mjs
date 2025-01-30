@@ -6,6 +6,8 @@ import path from 'path'
 import sitemap from '@astrojs/sitemap';
 import node from '@astrojs/node';
 
+console.log(Boolean(process.env.IS_SERVER))
+
 export default defineConfig({
   site: 'https://erpanomer.github.io',
   base: '/',
@@ -36,8 +38,10 @@ export default defineConfig({
   server: {
     open: true
   },
-  output: process.env.IS_SERVER ? 'server' : 'static',
-  adapter: node({
-    mode: 'middleware'
-  })
+  ...(process.env.IS_SERVER ? {
+    output: 'server',
+    adapter: node({
+      mode: 'middleware'
+    })
+  }: {})
 })
