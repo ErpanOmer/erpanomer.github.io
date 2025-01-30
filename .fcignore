@@ -1,7 +1,8 @@
-.astro
-.github
-.vscode
-src
-public
-tsconfig.json
-README.md
+.astro/
+.github/
+.vscode/
+./src
+./public
+./tsconfig.json
+./README.md
+./tailwind.config.mjs
