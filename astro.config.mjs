@@ -36,7 +36,7 @@ export default defineConfig({
   server: {
     open: true
   },
-  output: 'server',
+  output: process.env.IS_SERVER ? 'server' : 'static',
   adapter: node({
     mode: 'middleware'
   })

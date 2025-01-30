@@ -6,3 +6,7 @@
 ./tsconfig.json
 ./README.md
 ./tailwind.config.mjs
+./s.yaml
+./astro.config.mjs
+.gitignore
+.fcignore
