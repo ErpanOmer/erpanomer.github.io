@@ -29,7 +29,7 @@ resources:
         LD_LIBRARY_PATH: >-
           /code:/code/lib:/usr/local/lib:/opt/lib:/opt/php8.1/lib:/opt/php8.0/lib:/opt/php7.2/lib
         NODE_PATH: /opt/nodejs/node_modules
-      code: ./dist
+      code: ./
       triggers:
         - triggerConfig:
             methods:

@@ -1,8 +1,7 @@
 .astro
 .github
 .vscode
-node_modules
 src
 public
-package-lock.json
+tsconfig.json
 README.md
