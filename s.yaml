@@ -6,29 +6,22 @@ resources:
     component: fc3
     props:
       region: cn-shenzhen
-      handler: index.handler
+      handler: server.handler
       role: acs:ram::1964348983541964:role/aliyunfcdefaultrole
       description: ''
-      timeout: 60
+      timeout: 15
       diskSize: 512
       internetAccess: true
-      customRuntimeConfig:
-        port: 9000
-        command:
-          - npm
-          - run
-          - start
+      logConfig:
+        enableRequestMetrics: true
+        enableInstanceMetrics: true
+        logBeginRule: DefaultRegex
+        project: serverless-cn-shenzhen-ecdd7ab8-1d47-5ae6-894b-d4a065e8a761
+        logstore: default-logs
       functionName: homepage
-      runtime: custom.debian10
+      runtime: nodejs20
       cpu: 0.35
-      instanceConcurrency: 20
       memorySize: 512
-      environmentVariables:
-        PATH: >-
-          /var/fc/lang/nodejs20/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin:/opt/bin:/code:/code/bin
-        LD_LIBRARY_PATH: >-
-          /code:/code/lib:/usr/local/lib:/opt/lib:/opt/php8.1/lib:/opt/php8.0/lib:/opt/php7.2/lib
-        NODE_PATH: /opt/nodejs/node_modules
       code: ./
       triggers:
         - triggerConfig:
@@ -38,9 +31,11 @@ resources:
               - PUT
               - DELETE
               - OPTIONS
+              - HEAD
+              - PATCH
             authType: anonymous
             disableURLInternet: false
-          triggerName: defaultTrigger
+          triggerName: server
           description: ''
           qualifier: LATEST
           triggerType: http
