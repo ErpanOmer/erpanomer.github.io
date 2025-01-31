@@ -1,5 +1,5 @@
 import express from 'express';
-import adapter from './adapter.mjs';
+import serverless from 'serverless-http';
 import { handler as ssrHandler } from './dist/server/entry.mjs';
 
 const app = express();
@@ -9,4 +9,12 @@ const base = '/';
 app.use(base, express.static('./dist/client/'));
 app.use(ssrHandler);
 
-export const handler = adapter(app);
+// or as a promise
+const handler = serverless(app);
+
+export async function handler (event, context) {
+  // you can do other things here
+  const result = await handler(event, context);
+  // and here
+  return result;
+};

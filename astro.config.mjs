@@ -41,16 +41,7 @@ export default defineConfig({
   ...(process.env.IS_SERVER ? {
     output: 'server',
     adapter: node({
-      mode: 'middleware',
-      server: {
-        createRequest(req) {
-          return {
-            ...req,
-            protocol: req.headers['x-forwarded-proto'] || 'http',
-            secure: req.headers['x-forwarded-proto'] === 'https'
-          };
-        }
-      }
+      mode: 'middleware'
     })
   }: {})
 })
