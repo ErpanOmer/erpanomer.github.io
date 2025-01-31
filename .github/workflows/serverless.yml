@@ -17,4 +17,5 @@ jobs:
       - run: npm install -g @serverless-devs/s
       - run: IS_SERVER=true npm run build
       - run: s config add --AccessKeyID ${{secrets.AccessKeyID}} --AccessKeySecret ${{secrets.AccessKeySecret}} -a default -f
+      - run: s layer publish --layer-name node_modules --code ./node_modules --compatible-runtime nodejs20
       - run: s deploy -y --use-local
