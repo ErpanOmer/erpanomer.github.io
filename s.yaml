@@ -39,3 +39,7 @@ resources:
           description: ''
           qualifier: LATEST
           triggerType: http
+      asyncInvokeConfig:
+        asyncTask: true
+        maxAsyncEventAgeInSeconds: 86400
+        maxAsyncRetryAttempts: 3
