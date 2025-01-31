@@ -3,9 +3,11 @@
 .vscode/
 ./src
 ./public
+./node_modules
 ./tsconfig.json
 ./README.md
 ./tailwind.config.mjs
 ./s.yaml
 ./astro.config.mjs
+./package-lock.json
 .fcignore

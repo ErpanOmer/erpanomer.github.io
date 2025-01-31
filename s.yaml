@@ -12,6 +12,8 @@ resources:
       timeout: 15
       diskSize: 512
       internetAccess: true
+      layers:
+        - acs:fc:cn-shenzhen:1964348983541964:layers/dependencies/versions/1
       logConfig:
         enableRequestMetrics: true
         enableInstanceMetrics: true
@@ -42,4 +44,5 @@ resources:
       asyncInvokeConfig:
         asyncTask: true
         maxAsyncEventAgeInSeconds: 86400
+        destinationConfig: {}
         maxAsyncRetryAttempts: 3
