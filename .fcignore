@@ -3,6 +3,8 @@
 .vscode/
 ./src
 ./public
+./tsconfig.json
 ./README.md
+./tailwind.config.mjs
 ./s.yaml
-.fcignore
+./node_modules

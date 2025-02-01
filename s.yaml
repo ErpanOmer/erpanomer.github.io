@@ -4,6 +4,12 @@ access: default
 resources:
   fcDemo:
     component: fc3
+    actions:
+      pre-deploy:
+        - run: export PATH=/usr/local/versions/node/v20.8.1/bin:$PATH && npm install
+          path: ./
+        - run: export PATH=/usr/local/versions/node/v20.8.1/bin:$PATH && IS_SERVER=true npm run build
+          path: ./
     props:
       region: cn-shenzhen
       handler: server.handler
@@ -12,8 +18,6 @@ resources:
       timeout: 15
       diskSize: 512
       internetAccess: true
-      layers:
-        - acs:fc:cn-shenzhen:1964348983541964:layers/dependencies/versions/1
       logConfig:
         enableRequestMetrics: true
         enableInstanceMetrics: true
