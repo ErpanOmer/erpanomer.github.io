@@ -9,5 +9,4 @@
 ./tailwind.config.mjs
 ./s.yaml
 ./astro.config.mjs
-./package-lock.json
 .fcignore
