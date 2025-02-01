@@ -8,3 +8,7 @@
 ./tailwind.config.mjs
 ./s.yaml
 ./node_modules
+./package.json
+./package-lock.json
+.fcignore
+./astro.config.mjs

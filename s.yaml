@@ -12,7 +12,7 @@ resources:
           path: ./
     props:
       region: cn-shenzhen
-      handler: server.handler
+      handler: invoce.handler
       role: acs:ram::1964348983541964:role/aliyunfcdefaultrole
       description: ''
       timeout: 15

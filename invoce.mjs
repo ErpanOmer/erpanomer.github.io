@@ -10,10 +10,10 @@ app.use(base, express.static('./dist/client/'));
 app.use(ssrHandler);
 
 // or as a promise
-const handler = serverless(app);
+const h = serverless(app);
 export async function handler (event, context) {
   // you can do other things here
-  const result = await handler(event, context);
+  const result = await h(event, context);
   // and here
   return result;
 };
