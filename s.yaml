@@ -11,7 +11,7 @@ resources:
         - run: export PATH=/usr/local/versions/node/v20.8.1/bin:$PATH && IS_SERVER=true npm run build
           path: ./
       complete-deploy:
-        - run: ln -sfn /opt/nodejs/node_modules /code/node_modules
+        - run: ln -sfn /opt/nodejs/node_modules ./
           path: ./
     props:
       region: cn-shenzhen
