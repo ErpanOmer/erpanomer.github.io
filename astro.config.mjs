@@ -1,16 +1,14 @@
-import {
-  defineConfig
-} from 'astro/config'
+import { defineConfig } from 'astro/config'
 import tailwind from '@astrojs/tailwind';
 import path from 'path'
 import sitemap from '@astrojs/sitemap';
-import node from '@astrojs/node';
-
-console.log(Boolean(process.env.IS_SERVER))
+import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   site: 'https://erpanomer.github.io',
   base: '/',
+  output: 'server',
+  adapter: cloudflare(),
 
   integrations: [tailwind(), sitemap({
     serialize(item) {
@@ -27,21 +25,11 @@ export default defineConfig({
     }
   },
 
-  experimental: {
-    svg: true,
-  },
-
   build: {
-    inlineStylesheets: `always`,
+    inlineStylesheets: 'always',
   },
 
   server: {
     open: true
-  },
-  ...(process.env.IS_SERVER ? {
-    output: 'server',
-    adapter: node({
-      mode: 'middleware'
-    })
-  }: {})
+  }
 })

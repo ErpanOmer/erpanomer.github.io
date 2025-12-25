@@ -1,0 +1,44 @@
+---
+
+---
+
+<button
+    id="back-to-top"
+    class="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg opacity-0 invisible translate-y-4 transition-all duration-300 hover:scale-110 hover:shadow-xl"
+    aria-label="回到顶部"
+>
+    <svg
+        class="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+    </svg>
+</button>
+
+<script>
+    const btn = document.getElementById("back-to-top");
+
+    if (btn) {
+        // Show/hide on scroll
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 300) {
+                btn.classList.remove("opacity-0", "invisible", "translate-y-4");
+                btn.classList.add("opacity-100", "visible", "translate-y-0");
+            } else {
+                btn.classList.remove("opacity-100", "visible", "translate-y-0");
+                btn.classList.add("opacity-0", "invisible", "translate-y-4");
+            }
+        });
+
+        // Scroll to top on click
+        btn.addEventListener("click", () => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    }
+</script>

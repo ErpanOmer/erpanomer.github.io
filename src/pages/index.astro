@@ -1,18 +1,31 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Achievements from "../components/Achievements.astro";
+import Projects from "../components/Projects.astro";
+import LatestPosts from "../components/LatestPosts.astro";
 ---
 
-
 <BaseLayout>
- <h1>
-    <span>你好👋</span>
-    <br>
-    <span>我叫 ErpanOmer.</span>
- </h1>
- <p>
-    是一名Web前端工程师，目前在深圳的一家<a class="" target="_blank" href="https://newurtopia.com/">出海公司</a>工作。
- </p>
- <p>
-    
- </p>
+   <section class="max-w-6xl mx-auto px-4 sm:px-6">
+      <Hero />
+   </section>
+
+   <div class="border-t border-gh-border"></div>
+
+   <section class="max-w-6xl mx-auto px-4 sm:px-6">
+      <Achievements />
+   </section>
+
+   <div class="border-t border-gh-border"></div>
+
+   <section class="max-w-6xl mx-auto px-4 sm:px-6">
+      <LatestPosts />
+   </section>
+
+   <div class="border-t border-gh-border"></div>
+
+   <section class="max-w-6xl mx-auto px-4 sm:px-6">
+      <Projects />
+   </section>
 </BaseLayout>

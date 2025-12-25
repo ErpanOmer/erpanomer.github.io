@@ -1,0 +1,127 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection, getEntry } from "astro:content";
+
+// For SSR mode, fetch the post based on the slug from params
+const { slug } = Astro.params;
+
+if (!slug) {
+    return Astro.redirect("/blog");
+}
+
+const post = await getEntry("blog", slug);
+
+if (!post) {
+    return Astro.redirect("/blog");
+}
+
+const { Content } = await post.render();
+---
+
+<BaseLayout
+    title={post.data.title}
+    description={post.data.description}
+    image={post.data.cover}
+    type="article"
+    publishedTime={post.data.pubDate}
+    tags={post.data.tags}
+>
+    <article class="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+        <!-- Back Link -->
+        <a
+            href="/blog"
+            class="inline-flex items-center gap-2 text-sm text-gh-muted hover:text-white mb-8 transition-colors"
+        >
+            <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>返回博客</span>
+        </a>
+
+        <!-- Header -->
+        <header class="mb-10">
+            <div class="flex items-center gap-3 text-sm text-gh-muted mb-4">
+                <time datetime={post.data.pubDate.toISOString()}>
+                    {
+                        post.data.pubDate.toLocaleDateString("zh-CN", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                        })
+                    }
+                </time>
+                <span>·</span>
+                <span>约 5 分钟阅读</span>
+            </div>
+            <h1
+                class="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight"
+            >
+                {post.data.title}
+            </h1>
+            <p class="text-base text-gh-muted leading-relaxed">
+                {post.data.description}
+            </p>
+            {
+                post.data.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2 mt-6">
+                        {post.data.tags.map((tag) => (
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-gh-surface text-gh-muted border border-gh-border">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                )
+            }
+        </header>
+
+        <!-- Cover Image -->
+        {
+            post.data.cover && (
+                <div class="mb-10 -mx-4 sm:mx-0 sm:rounded-xl overflow-hidden">
+                    <img
+                        src={post.data.cover}
+                        alt={post.data.title}
+                        class="w-full"
+                        loading="eager"
+                    />
+                </div>
+            )
+        }
+
+        <!-- Content -->
+        <div class="prose-blog">
+            <Content />
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 pt-8 border-t border-gh-border">
+            <a
+                href="/blog"
+                class="inline-flex items-center gap-2 text-sm text-indigo-400 hover:underline underline-offset-4"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>查看更多文章</span>
+            </a>
+        </footer>
+    </article>
+</BaseLayout>

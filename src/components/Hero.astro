@@ -1,0 +1,121 @@
+---
+const skills = [
+    { name: "React", color: "bg-sky-500" },
+    { name: "Vue", color: "bg-emerald-500" },
+    { name: "TypeScript", color: "bg-blue-600" },
+    { name: "Tailwind", color: "bg-cyan-500" },
+    { name: "Shopify", color: "bg-green-600" },
+    { name: "Cloudflare", color: "bg-orange-500" },
+    { name: "AI / LLM", color: "bg-purple-500" },
+];
+---
+
+<div
+    class="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-12 sm:py-0"
+>
+    <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-20">
+        <!-- Avatar -->
+        <div class="relative flex-shrink-0 order-1 lg:order-2">
+            <div
+                class="absolute -inset-6 sm:-inset-8 rounded-full border border-dashed border-gh-border animate-[spin_60s_linear_infinite]"
+            >
+            </div>
+            <div
+                class="absolute -inset-4 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl opacity-60"
+            >
+            </div>
+            <div
+                class="relative w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 rounded-full overflow-hidden ring-4 ring-gh-surface shadow-xl"
+            >
+                <img
+                    src="https://cdn.shopify.com/s/files/1/0583/5810/4213/files/8b116889-af12-4694-afa0-08a9a5919a62.webp?v=1766544591&width=600"
+                    alt="ErpanOmer"
+                    class="w-full h-full object-cover"
+                    loading="eager"
+                />
+            </div>
+        </div>
+
+        <!-- Text Content -->
+        <div class="flex-1 text-center lg:text-left order-2 lg:order-1">
+            <h1
+                class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white mb-6 leading-[1.15]"
+            >
+                Hi, I'm <span class="text-indigo-400">ErpanOmer</span>
+                <br />
+                <span class="text-gh-muted text-2xl sm:text-3xl lg:text-4xl"
+                    >Frontend Engineer</span
+                >
+            </h1>
+
+            <p
+                class="text-base sm:text-lg text-gh-muted leading-relaxed mb-6 max-w-xl mx-auto lg:mx-0"
+            >
+                我是一名资深 Web 前端工程师，专注于 <span
+                    class="text-gh-text font-medium">Shopify 独立站</span
+                > 与 <span class="text-gh-text font-medium"
+                    >Cloudflare 边缘计算</span
+                >。同时持续探索 AI 编程，将其作为提升工程效率的核心手段。
+            </p>
+
+            <!-- Tech Stack Tags -->
+            <div
+                class="flex flex-wrap gap-2 justify-center lg:justify-start mb-8"
+            >
+                {
+                    skills.map((skill) => (
+                        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-gh-surface rounded-full border border-gh-border">
+                            <span
+                                class={`w-1.5 h-1.5 rounded-full ${skill.color}`}
+                            />
+                            <span class="text-xs font-medium text-gh-text">
+                                {skill.name}
+                            </span>
+                        </div>
+                    ))
+                }
+            </div>
+
+            <!-- CTA Buttons -->
+            <div
+                class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start"
+            >
+                <a
+                    href="mailto:erpanomer@gmail.com"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-gh-bg text-sm sm:text-base font-medium hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300"
+                >
+                    <svg
+                        class="w-4 h-4 sm:w-5 sm:h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        ></path>
+                    </svg>
+                    Say Hello
+                </a>
+                <a
+                    href="https://github.com/ErpanOmer"
+                    target="_blank"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gh-surface text-gh-text text-sm sm:text-base font-medium border border-gh-border hover:-translate-y-0.5 hover:border-gh-muted transition-all duration-300"
+                >
+                    <svg
+                        class="w-4 h-4 sm:w-5 sm:h-5"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path
+                            d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"
+                        ></path>
+                    </svg>
+                    View GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

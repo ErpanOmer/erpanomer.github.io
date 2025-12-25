@@ -1,0 +1,17 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "erpanomer-website",
+    "main": "./dist/_worker.js/index.js",
+    // 更新为今天的日期
+    "compatibility_date": "2025-12-25",
+    "compatibility_flags": [
+        "nodejs_compat"
+    ],
+    "assets": {
+        "binding": "ASSETS",
+        "directory": "./dist"
+    },
+    "observability": {
+        "enabled": true
+    }
+}

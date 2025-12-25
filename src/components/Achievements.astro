@@ -1,0 +1,69 @@
+---
+const stats = [
+    { value: "100w+", label: "阅读量", description: "掘金平台", icon: "📊" },
+    { value: "3,000+", label: "粉丝", description: "持续增长中", icon: "👥" },
+    { value: "50+", label: "技术文章", description: "原创分享", icon: "✍️" },
+    { value: "5+", label: "开源项目", description: "GitHub", icon: "🚀" },
+];
+---
+
+<div class="py-16 sm:py-20 lg:py-24">
+    <div class="text-center mb-10 sm:mb-12">
+        <p
+            class="text-xs sm:text-sm font-medium text-indigo-400 uppercase tracking-widest mb-2"
+        >
+            Achievements
+        </p>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white">成就与影响力</h2>
+        <p class="text-sm sm:text-base text-gh-muted mt-3 max-w-xl mx-auto">
+            作为掘金平台的优秀作者，专注于前端技术分享
+        </p>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {
+            stats.map((stat) => (
+                <div class="group relative">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500" />
+                    <div class="relative p-4 sm:p-6 bg-gh-surface rounded-xl border border-gh-border text-center group-hover:border-gh-muted transition-all duration-300">
+                        <span class="text-2xl sm:text-3xl mb-2 sm:mb-3 block">
+                            {stat.icon}
+                        </span>
+                        <div class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+                            {stat.value}
+                        </div>
+                        <div class="text-sm sm:text-base font-medium text-gh-text">
+                            {stat.label}
+                        </div>
+                        <div class="text-xs text-gh-muted mt-0.5">
+                            {stat.description}
+                        </div>
+                    </div>
+                </div>
+            ))
+        }
+    </div>
+
+    <div class="text-center mt-8 sm:mt-10">
+        <a
+            href="https://juejin.cn/user/3878732754331096"
+            target="_blank"
+            class="inline-flex items-center gap-2 text-sm text-indigo-400 hover:underline underline-offset-4"
+        >
+            <span>查看我的掘金主页</span>
+            <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                ></path>
+            </svg>
+        </a>
+    </div>
+</div>

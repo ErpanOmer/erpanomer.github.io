@@ -1,47 +1,63 @@
-# Astro Starter Kit: Minimal
+# ErpanOmer's Personal Website
 
-```sh
-npm create astro@latest -- --template minimal
-```
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Astro](https://img.shields.io/badge/Astro-v5-orange)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v3-blue)
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/minimal)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/minimal)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/minimal/devcontainer.json)
+Welcome to the source code of my personal website! This project is a portfolio website built to showcase my skills, projects, and blog posts as a Frontend Engineer.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## 🚀 Tech Stack
 
-## 🚀 Project Structure
+- **Framework**: [Astro](https://astro.build/) - A web framework for building content-driven websites.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework.
+- **Deployment**: [GitHub Pages](https://pages.github.com/) - Hosted directly from this repository.
 
-Inside of your Astro project, you'll see the following folders and files:
+## 📂 Project Structure
 
 ```text
 /
-├── public/
+├── public/       # Static assets
 ├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+│   ├── components/ # Reusable UI components
+│   ├── layouts/    # Page layouts (BaseLayout, etc.)
+│   ├── pages/      # Astro pages (routes)
+│   └── images/     # Project images
+├── astro.config.mjs # Astro configuration
+└── tailwind.config.mjs # Tailwind CSS configuration
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 🛠️ Development
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+To run this project locally, follow these steps:
 
-Any static assets, like images, can be placed in the `public/` directory.
+1.  **Install dependencies**:
 
-## 🧞 Commands
+    ```bash
+    npm install
+    ```
 
-All commands are run from the root of the project, from a terminal:
+2.  **Start the development server**:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+    ```bash
+    npm run dev
+    ```
 
-## 👀 Want to learn more?
+    Open your browser and navigate to `http://localhost:4321`.
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+3.  **Build for production**:
+
+    ```bash
+    npm run build
+    ```
+
+    This command will generate a static version of the site in the `dist/` folder.
+
+4.  **Preview the production build**:
+
+    ```bash
+    npm run preview
+    ```
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
