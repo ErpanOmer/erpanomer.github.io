@@ -11,6 +11,12 @@
         "binding": "ASSETS",
         "directory": "./dist"
     },
+    "kv_namespaces": [
+        {
+            "binding": "VIEWS",
+            "id": "3e8f221b3ceb4c0c8078b61810cd4579"
+        }
+    ],
     "observability": {
         "enabled": true
     }

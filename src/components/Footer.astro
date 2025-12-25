@@ -1,19 +1,97 @@
 ---
+const { env } = Astro.locals.runtime || {};
+let viewCount = 0;
 
+if (env && env.VIEWS) {
+    try {
+        const ip =
+            Astro.request.headers.get("CF-Connecting-IP") ||
+            Astro.clientAddress;
+        const visitorKey = `visitor:${ip}`;
+
+        // Check if this IP has visited in the last 24 hours
+        const hasVisited = await env.VIEWS.get(visitorKey);
+
+        if (!hasVisited) {
+            // New visitor (or expired): Increment global count
+            // Using a simple increment. For high scale, atomic increment or durable objects is better,
+            // but for a personal blog, read-modify-write is acceptable or just trusting the eventual consistency.
+            // KV doesn't strictly support atomic increment, but we can just get and put.
+            // Actually, for simplicity and speed:
+
+            const currentCount = await env.VIEWS.get("site_views");
+            let count = currentCount ? parseInt(currentCount) : 0;
+            count++;
+
+            // Update global count
+            await env.VIEWS.put("site_views", count.toString());
+
+            // Mark IP as visited for 24 hours (86400 seconds)
+            await env.VIEWS.put(visitorKey, "1", { expirationTtl: 86400 });
+
+            viewCount = count;
+        } else {
+            // Returning visitor: just get the count
+            const currentCount = await env.VIEWS.get("site_views");
+            viewCount = currentCount ? parseInt(currentCount) : 0;
+        }
+    } catch (e) {
+        console.error("KV Error:", e);
+        // Fallback or silently fail
+    }
+} else {
+    // Local development fallback
+    viewCount = 8888;
+}
 ---
 
-<footer class="border-t border-zinc-200 dark:border-zinc-800 py-8 mt-auto">
+<footer class="border-t border-gh-border py-8 mt-auto bg-gh-bg">
     <div class="max-w-6xl mx-auto px-6">
         <div
             class="flex flex-col sm:flex-row items-center justify-between gap-4"
         >
-            <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                © {new Date().getFullYear()} ErpanOmer. All rights reserved.
-            </p>
+            <div
+                class="flex flex-col sm:flex-row items-center gap-4 text-sm text-gh-muted"
+            >
+                <p>
+                    © {new Date().getFullYear()} ErpanOmer. All rights reserved.
+                </p>
+                <div class="hidden sm:block w-px h-3 bg-gh-border"></div>
+                <p
+                    class="flex items-center gap-1.5"
+                    title="24小时内同一设备仅记录一次"
+                >
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        ></path>
+                    </svg>
+                    <span
+                        >Total Views: <span
+                            class="text-white font-medium font-mono"
+                            >{viewCount.toLocaleString()}</span
+                        ></span
+                    >
+                </p>
+            </div>
+
             <div class="flex items-center gap-4">
                 <a
                     href="mailto:erpanomer@gmail.com"
-                    class="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                    class="text-sm text-gh-muted hover:text-white transition-colors"
                 >
                     erpanomer@gmail.com
                 </a>
