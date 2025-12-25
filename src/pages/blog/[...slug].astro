@@ -2,7 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection, getEntry } from "astro:content";
 
-// For SSR mode, fetch the post based on the slug from params
+// SSR Mode: fetch post dynamically based on slug param
 const { slug } = Astro.params;
 
 if (!slug) {
