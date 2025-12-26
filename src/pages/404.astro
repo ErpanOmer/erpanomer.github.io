@@ -1,0 +1,82 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+    title="404 - Page Not Found"
+    description="The page you're looking for doesn't exist."
+>
+    <div
+        class="relative flex flex-col items-center justify-center min-h-[calc(100vh-16rem)] px-4 sm:px-6 overflow-hidden"
+    >
+        <!-- Background decorations -->
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[100px] pointer-events-none"
+        >
+        </div>
+        <div
+            class="absolute top-1/4 right-1/4 w-32 h-32 bg-purple-500/20 rounded-full blur-[60px] pointer-events-none animate-pulse"
+        >
+        </div>
+
+        <div class="relative z-10 text-center space-y-8">
+            <!-- 404 Text -->
+            <h1
+                class="text-9xl sm:text-[12rem] font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 animate-gradient select-none"
+            >
+                404
+            </h1>
+
+            <!-- Message -->
+            <div class="space-y-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">
+                    Page not found
+                </h2>
+                <p class="text-base sm:text-lg text-gh-muted max-w-md mx-auto">
+                    Sorry, we couldn't find the page you're looking for. It
+                    might have been moved or doesn't exist.
+                </p>
+            </div>
+
+            <!-- Action -->
+            <div class="pt-4">
+                <a
+                    href="/"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-gh-bg font-medium hover:bg-zinc-200 transition-all active:scale-95 shadow-lg shadow-indigo-500/20 group"
+                >
+                    <svg
+                        class="w-5 h-5 transition-transform group-hover:-translate-x-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    @keyframes gradient {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    .animate-gradient {
+        background-size: 200% auto;
+        animation: gradient 4s linear infinite;
+    }
+</style>

@@ -1,7 +1,9 @@
 ---
+import { CldImage } from "astro-cloudinary";
 const skills = [
     { name: "React", color: "bg-sky-500" },
     { name: "Vue", color: "bg-emerald-500" },
+    { name: "Electron", color: "bg-blue-600" },
     { name: "TypeScript", color: "bg-blue-600" },
     { name: "Tailwind", color: "bg-cyan-500" },
     { name: "Shopify", color: "bg-green-600" },
@@ -27,10 +29,13 @@ const skills = [
             <div
                 class="relative w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 rounded-full overflow-hidden ring-4 ring-gh-surface shadow-xl"
             >
-                <img
-                    src="https://cdn.shopify.com/s/files/1/0583/5810/4213/files/8b116889-af12-4694-afa0-08a9a5919a62.webp?v=1766544591&width=600"
-                    alt="ErpanOmer"
+                <CldImage
+                    src="8b116889-af12-4694-afa0-08a9a5919a62_fezfxk"
+                    width={300}
+                    height={300}
+                    sizes="300px"
                     class="w-full h-full object-cover"
+                    alt="ErpanOmer"
                     loading="eager"
                 />
             </div>

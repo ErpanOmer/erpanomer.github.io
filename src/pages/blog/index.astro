@@ -11,7 +11,7 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
     title="博客"
     description="技术分享、开发心得、学习笔记 - ErpanOmer 的技术博客"
 >
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <!-- Header -->
         <div class="mb-12">
             <a
@@ -43,11 +43,11 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
                     <a href={`/blog/${post.slug}`} class="group block">
                         <article class="flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 -mx-4 rounded-xl hover:bg-zinc-900/50 transition-colors">
                             {post.data.cover && (
-                                <div class="sm:w-40 sm:h-24 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-800">
+                                <div class="aspect-video flex-[0.5] flex-shrink-0 rounded-lg overflow-hidden bg-zinc-800">
                                     <img
                                         src={post.data.cover}
                                         alt={post.data.title}
-                                        class="w-full h-40 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                 </div>
                             )}

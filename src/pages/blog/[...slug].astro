@@ -1,9 +1,12 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection, getEntry } from "astro:content";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
 // SSR Mode: fetch post dynamically based on slug param
 const { slug } = Astro.params;
+dayjs.extend(utc);
 
 if (!slug) {
     return Astro.redirect("/blog");
@@ -15,7 +18,35 @@ if (!post) {
     return Astro.redirect("/blog");
 }
 
-const { Content } = await post.render();
+const { Content, remarkPluginFrontmatter } = await post.render();
+const lastModified = dayjs(remarkPluginFrontmatter.lastModified).format(
+    "YYYY-MM-DD HH:mm:ss",
+);
+
+console.log(lastModified);
+
+const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.data.title,
+    description: post.data.description,
+    datePublished: post.data.pubDate.toISOString(),
+    dateModified: remarkPluginFrontmatter.lastModified
+        ? dayjs(remarkPluginFrontmatter.lastModified).toISOString()
+        : post.data.pubDate.toISOString(),
+    author: {
+        "@type": "Person",
+        name: post.data.author,
+    },
+    url: new URL(Astro.url.pathname, Astro.site).toString(),
+    image: post.data.cover
+        ? new URL(post.data.cover, Astro.site).toString()
+        : undefined,
+    mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": new URL(Astro.url.pathname, Astro.site).toString(),
+    },
+};
 ---
 
 <BaseLayout
@@ -26,7 +57,13 @@ const { Content } = await post.render();
     publishedTime={post.data.pubDate}
     tags={post.data.tags}
 >
-    <article class="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+    <script
+        type="application/ld+json"
+        set:html={JSON.stringify(jsonLd)}
+        slot="head"
+    />
+
+    <article class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
         <!-- Back Link -->
         <a
             href="/blog"
@@ -49,27 +86,60 @@ const { Content } = await post.render();
 
         <!-- Header -->
         <header class="mb-10">
-            <div class="flex items-center gap-3 text-sm text-gh-muted mb-4">
-                <time datetime={post.data.pubDate.toISOString()}>
-                    {
-                        post.data.pubDate.toLocaleDateString("zh-CN", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })
-                    }
-                </time>
-                <span>·</span>
-                <span>约 5 分钟阅读</span>
-            </div>
             <h1
                 class="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight"
             >
                 {post.data.title}
             </h1>
-            <p class="text-base text-gh-muted leading-relaxed">
+            <div class="flex items-center gap-3 text-sm text-gh-muted mb-4">
+                <div class="flex items-center gap-1.5">
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        ></path>
+                    </svg>
+                    <span>{post.data.author}</span>
+                </div>
+                <span>·</span>
+                <span>约 5 分钟阅读</span>
+                {
+                    remarkPluginFrontmatter.lastModified && (
+                        <>
+                            <span class="hidden sm:inline">·</span>
+                            <div
+                                class="flex items-center gap-1.5"
+                                title="Last Modified"
+                            >
+                                <svg
+                                    class="w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                                <span>Updated: {lastModified}</span>
+                            </div>
+                        </>
+                    )
+                }
+            </div>
+            <!-- <p class="text-base text-gh-muted leading-relaxed">
                 {post.data.description}
-            </p>
+            </p> -->
             {
                 post.data.tags.length > 0 && (
                     <div class="flex flex-wrap gap-2 mt-6">

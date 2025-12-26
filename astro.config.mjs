@@ -1,8 +1,9 @@
-import { defineConfig, passthroughImageService } from 'astro/config'
+import { defineConfig, passthroughImageService, fontProviders } from 'astro/config'
 import tailwind from '@astrojs/tailwind';
 import path from 'path'
 import sitemap from '@astrojs/sitemap';
 import cloudflare from '@astrojs/cloudflare';
+import { remarkModifiedTime } from './remark-modified-time.mjs';
 
 export default defineConfig({
   site: 'https://erpanomer.nurverse.com',
@@ -40,5 +41,8 @@ export default defineConfig({
 
   server: {
     open: true
-  }
+  },
+  markdown: {
+    remarkPlugins: [remarkModifiedTime],
+  },
 })

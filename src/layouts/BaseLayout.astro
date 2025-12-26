@@ -1,9 +1,14 @@
 ---
+import { Font } from "astro:assets";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import BackToTop from "@/components/BackToTop.astro";
+import { getCldImageUrl } from "astro-cloudinary/helpers";
 import me from "@/images/me.jpg";
 import "@/app.css";
+import { CldOgImage } from "astro-cloudinary";
+
+const { env } = Astro.locals.runtime || {};
 
 interface Props {
   title?: string;
@@ -27,18 +32,63 @@ const siteTitle = "ErpanOmer";
 const fullTitle = title.includes(siteTitle) ? title : `${title} | ${siteTitle}`;
 const url = new URL(Astro.url);
 const lang = "zh-CN";
+let viewCount = 0;
+
+if (env && env.VIEWS) {
+  try {
+    // Optimization: Check for session cookie first to avoid KV reads
+    const hasVisitedCookie = Astro.cookies.has("has_visited_today");
+
+    // Always need to read the current count to display it
+    // Note: For extreme high scale, we might cache this too, but for now exact count is better
+    const currentCountStr = await env.VIEWS.get("site_views");
+    const currentCount = currentCountStr ? parseInt(currentCountStr) : 0;
+    viewCount = currentCount;
+
+    if (!hasVisitedCookie) {
+      const ip =
+        Astro.request.headers.get("CF-Connecting-IP") || Astro.clientAddress;
+      const visitorKey = `visitor:${ip}`;
+
+      // Double check KV to be sure (in case user cleared cookies but IP is still blocked)
+      const hasVisitedKV = await env.VIEWS.get(visitorKey);
+
+      if (!hasVisitedKV) {
+        // Truly new visitor
+        viewCount++;
+        // Update global count
+        await env.VIEWS.put("site_views", viewCount.toString());
+        // Mark IP in KV (24h)
+        await env.VIEWS.put(visitorKey, "1", { expirationTtl: 86400 });
+      }
+
+      // Set cookie to avoid KV IP check next time (24h)
+      Astro.cookies.set("has_visited_today", "true", {
+        maxAge: 86400,
+        path: "/",
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      });
+    }
+  } catch (e) {
+    console.error("KV Error:", e);
+    // Fallback or silently fail
+  }
+} else {
+  // Local development fallback
+  viewCount = 8888;
+}
 ---
 
 <html lang={lang} class="dark scroll-smooth">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
@@ -56,21 +106,25 @@ const lang = "zh-CN";
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0d1117" />
 
+    <CldOgImage
+      src="me_kknemi"
+      width={500}
+      height={500}
+      twitterTitle={fullTitle}
+      alt={fullTitle}
+    />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type} />
     <meta property="og:url" content={url} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={image} />
     <meta property="og:site_name" content={siteTitle} />
     <meta property="og:locale" content={lang} />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content={url} />
-    <meta property="twitter:title" content={fullTitle} />
     <meta property="twitter:description" content={description} />
-    <meta property="twitter:image" content={image} />
 
     <!-- Article specific -->
     {
@@ -102,13 +156,49 @@ const lang = "zh-CN";
 
     <!-- Canonical URL -->
     <link rel="canonical" href={url} />
+    <slot name="head" />
   </head>
   <body class="min-h-screen flex flex-col bg-gh-bg text-gh-text">
     <Header />
     <main class="flex-1">
       <slot />
     </main>
-    <Footer />
+    <Footer viewCount={viewCount} />
     <BackToTop />
-  </body>
+  </body><script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          name: siteTitle,
+          url: new URL(Astro.url.origin).toString(),
+          description: description,
+          inLanguage: lang,
+          publisher: {
+            "@type": "Person",
+            name: "ErpanOmer",
+          },
+        },
+        {
+          "@type": "Person",
+          name: "ErpanOmer",
+          url: new URL(Astro.url.origin).toString(),
+          image: getCldImageUrl({
+            src: "me_kknemi",
+            width: 500,
+            height: 500,
+          }),
+          sameAs: [
+            "https://github.com/ErpanOmer",
+            "https://juejin.cn/user/3878732754331096",
+          ],
+          jobTitle: "Web Frontend Engineer",
+          description: description,
+        },
+      ],
+    })}
+  />
 </html>
