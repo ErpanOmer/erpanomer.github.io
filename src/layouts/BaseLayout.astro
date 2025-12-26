@@ -32,53 +32,9 @@ const siteTitle = "ErpanOmer";
 const fullTitle = title.includes(siteTitle) ? title : `${title} | ${siteTitle}`;
 const url = new URL(Astro.url);
 const lang = "zh-CN";
-let viewCount = 0;
 
-if (env && env.VIEWS) {
-  try {
-    // Optimization: Check for session cookie first to avoid KV reads
-    const hasVisitedCookie = Astro.cookies.has("has_visited_today");
-
-    // Always need to read the current count to display it
-    // Note: For extreme high scale, we might cache this too, but for now exact count is better
-    const currentCountStr = await env.VIEWS.get("site_views");
-    const currentCount = currentCountStr ? parseInt(currentCountStr) : 0;
-    viewCount = currentCount;
-
-    if (!hasVisitedCookie) {
-      const ip =
-        Astro.request.headers.get("CF-Connecting-IP") || Astro.clientAddress;
-      const visitorKey = `visitor:${ip}`;
-
-      // Double check KV to be sure (in case user cleared cookies but IP is still blocked)
-      const hasVisitedKV = await env.VIEWS.get(visitorKey);
-
-      if (!hasVisitedKV) {
-        // Truly new visitor
-        viewCount++;
-        // Update global count
-        await env.VIEWS.put("site_views", viewCount.toString());
-        // Mark IP in KV (24h)
-        await env.VIEWS.put(visitorKey, "1", { expirationTtl: 86400 });
-      }
-
-      // Set cookie to avoid KV IP check next time (24h)
-      Astro.cookies.set("has_visited_today", "true", {
-        maxAge: 86400,
-        path: "/",
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-      });
-    }
-  } catch (e) {
-    console.error("KV Error:", e);
-    // Fallback or silently fail
-  }
-} else {
-  // Local development fallback
-  viewCount = 8888;
-}
+// Visitor count is now handled in middleware to avoid "headers already sent" issues with cookies
+const viewCount = Astro.locals.viewCount || 0;
 ---
 
 <html lang={lang} class="dark scroll-smooth">
