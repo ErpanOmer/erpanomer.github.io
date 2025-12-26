@@ -19,5 +19,8 @@
     ],
     "observability": {
         "enabled": true
+    },
+    "vars": {
+        "PUBLIC_CLOUDINARY_CLOUD_NAME": "dkh81cvyt"
     }
 }
