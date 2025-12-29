@@ -91,7 +91,9 @@ const jsonLd = {
             >
                 {post.data.title}
             </h1>
-            <div class="flex items-center gap-3 text-sm text-gh-muted mb-4">
+            <div
+                class="flex items-center gap-3 text-sm text-gh-muted mb-4 flex-wrap-reverse"
+            >
                 <div class="flex items-center gap-1.5">
                     <svg
                         class="w-4 h-4"
@@ -194,4 +196,116 @@ const jsonLd = {
             </a>
         </footer>
     </article>
+    <!-- Lightbox UI -->
+    <div
+        id="lightbox"
+        class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+        style="will-change: opacity;"
+    >
+        <div class="absolute top-4 right-4 z-50">
+            <button
+                id="lightbox-close"
+                class="text-white/70 hover:text-white transition-colors p-2"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="h-full w-full flex items-center justify-center px-4 py-24">
+            <img
+                id="lightbox-img"
+                src=""
+                alt="Lightbox preview"
+                class="max-h-full max-w-full object-contain shadow-2xl rounded-sm transform scale-95 transition-transform duration-300"
+                decoding="async"
+                style="will-change: transform; backface-visibility: hidden;"
+            />
+        </div>
+    </div>
+
+    <style is:global>
+        /* Optimization: Zoom cursor for blog images */
+        .prose-blog img {
+            cursor: zoom-in;
+        }
+    </style>
+
+    <script is:inline>
+        // Lightbox Logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const lightbox = document.getElementById("lightbox");
+            const lightboxImg = document.getElementById("lightbox-img");
+            const closeBtn = document.getElementById("lightbox-close");
+            const body = document.body;
+            let isOpen = false;
+
+            const openLightbox = (src) => {
+                lightboxImg.src = src;
+                lightbox.classList.remove("hidden");
+                // Trigger reflow
+                void lightbox.offsetWidth;
+                lightbox.classList.remove("opacity-0");
+                lightboxImg.classList.remove("scale-95");
+                lightboxImg.classList.add("scale-100");
+                body.style.overflow = "hidden"; // Prevent scrolling
+                isOpen = true;
+            };
+
+            const closeLightbox = () => {
+                lightbox.classList.add("opacity-0");
+                lightboxImg.classList.remove("scale-100");
+                lightboxImg.classList.add("scale-95");
+                setTimeout(() => {
+                    lightbox.classList.add("hidden");
+                    lightboxImg.removeAttribute("src");
+                    body.style.overflow = "";
+                    isOpen = false;
+                }, 300);
+            };
+
+            // Optimization: Event Delegation
+            // Instead of attaching listeners to every image, we attach one to the container
+            const contentContainer = document.querySelector(".prose-blog");
+            if (contentContainer) {
+                contentContainer.addEventListener("click", (e) => {
+                    const target = e.target;
+                    if (target.tagName === "IMG") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openLightbox(target.src);
+                    }
+                });
+            }
+
+            // Close listeners
+            closeBtn.addEventListener("click", closeLightbox);
+
+            lightbox.addEventListener("click", (e) => {
+                if (
+                    e.target === lightbox ||
+                    e.target.parentElement === lightbox
+                ) {
+                    closeLightbox();
+                }
+            });
+
+            document.addEventListener("keydown", (e) => {
+                if (isOpen && e.key === "Escape") {
+                    closeLightbox();
+                }
+            });
+        });
+    </script>
 </BaseLayout>

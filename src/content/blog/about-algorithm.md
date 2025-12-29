@@ -6,7 +6,7 @@ lastModified: 2025-12-26T19:16:00.000Z
 author: "ErpanOmer"
 draft: false
 tags: ["前端", "算法","感想"]
-cover: "https://www.devopsschool.com/blog/wp-content/uploads/2021/06/Complete-Tutorials-of-Introduction-to-Algorithm.png"
+cover: "https://res.cloudinary.com/dkh81cvyt/image/upload/v1767013581/Complete-Tutorials-of-Introduction-to-Algorithm_tqhnea.png"
 ---
 
 最让我头疼的是什么？就是“算法题”这个环节。

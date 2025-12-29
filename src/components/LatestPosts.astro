@@ -33,6 +33,7 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft))
                         {post.data.cover && (
                             <div class="aspect-[16/9] overflow-hidden">
                                 <img
+                                    loading="lazy"
                                     src={post.data.cover}
                                     alt={post.data.title}
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

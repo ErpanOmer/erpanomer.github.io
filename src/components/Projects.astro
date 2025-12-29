@@ -55,8 +55,9 @@ const typeIcons = {
                     <!-- Image -->
                     <div class="aspect-[16/10] overflow-hidden">
                         <img 
-                            src={project.image} 
+                            src={project.image}
                             alt={project.title}
+                            loading="lazy"
                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     </div>

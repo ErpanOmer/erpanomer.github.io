@@ -14,22 +14,12 @@ export async function onRequest(context, next) {
             viewCount = currentCount;
 
             if (!hasVisitedCookie) {
-                const ip = request.headers.get("CF-Connecting-IP") || "127.0.0.1";
-                const visitorKey = `visitor:${ip}`;
+                // Truly new visitor (based on cookie)
+                viewCount++;
+                // Update global count
+                await env.VIEWS.put("site_views", viewCount.toString());
 
-                // Double check KV to be sure
-                const hasVisitedKV = await env.VIEWS.get(visitorKey);
-
-                if (!hasVisitedKV) {
-                    // Truly new visitor
-                    viewCount++;
-                    // Update global count
-                    await env.VIEWS.put("site_views", viewCount.toString());
-                    // Mark IP in KV (24h)
-                    await env.VIEWS.put(visitorKey, "1", { expirationTtl: 86400 });
-                }
-
-                // Set cookie to avoid KV IP check next time (24h)
+                // Set cookie to avoid counting again today (24h)
                 cookies.set("has_visited_today", "true", {
                     maxAge: 86400,
                     path: "/",

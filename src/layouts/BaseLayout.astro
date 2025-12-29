@@ -43,6 +43,8 @@ const viewCount = Astro.locals.viewCount || 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
@@ -96,12 +98,6 @@ const viewCount = Astro.locals.viewCount || 0;
         </>
       )
     }
-
-    <!-- Verification -->
-    <meta
-      name="google-site-verification"
-      content="cD9Ex6wQRfSW4FyvHs5y1l8eFF9cKno8M-jn3MgF_DE"
-    />
 
     <!-- Favicon -->
     <link rel="sitemap" href="/sitemap-index.xml" />

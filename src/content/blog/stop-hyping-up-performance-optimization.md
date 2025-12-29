@@ -1,12 +1,12 @@
 ---
 title: "别再吹性能优化了：你的应用卡顿，纯粹是因为产品设计烂🤷‍♂️"
-description: "前端真的需要懂算法吗？聊聊感受"
+description: "别再吹性能优化了：你的应用卡顿，纯粹是因为产品设计烂🤷‍♂️"
 pubDate: 2025-12-26
 lastModified: 2025-12-26T19:16:00.000Z
 author: "ErpanOmer"
 draft: false
 tags: ["前端", "性能优化", "产品", "感想"]
-cover: "https://web.dev/static/performance/image/hero-performance.png"
+cover: "https://res.cloudinary.com/dkh81cvyt/image/upload/v1767013224/hero-performance_shheuk.png"
 ---
 
 大家好！
