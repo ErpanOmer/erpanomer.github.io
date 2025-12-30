@@ -26,7 +26,7 @@
     "services": [
         {
             "binding": "LEETCODE_SERVICE",
-            "service": "leetcode"
+            "service": "leetcode-3d8"
         }
     ]
 }
