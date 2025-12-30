@@ -26,7 +26,8 @@
     "services": [
         {
             "binding": "LEETCODE_SERVICE",
-            "service": "leetcode-3d8"
+            "service": "leetcode-3d8",
+            "entrypoint": ""
         }
     ]
 }
