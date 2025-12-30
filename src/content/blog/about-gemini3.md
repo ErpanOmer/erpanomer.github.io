@@ -19,7 +19,7 @@ Gemini 3 的发布会，大家看了没？
 
 但 Google 秀的这一手，真的有点**不讲武德**。
 
-```txt
+```doc
 
 我出于好奇心，用 [Google Al Studio](https://aistudio.google.com/apps) 试了一下几个经典的需求, 直接把飞书需求文档扔给它（纯文案）👇：
 
