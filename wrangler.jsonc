@@ -22,5 +22,11 @@
     },
     "vars": {
         "PUBLIC_CLOUDINARY_CLOUD_NAME": "dkh81cvyt"
-    }
+    },
+    "services": [
+        {
+            "binding": "LEETCODE_SERVICE",
+            "service": "leetcode"
+        }
+    ]
 }
