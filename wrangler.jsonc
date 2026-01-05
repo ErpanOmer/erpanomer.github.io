@@ -15,6 +15,10 @@
         {
             "binding": "VIEWS",
             "id": "3e8f221b3ceb4c0c8078b61810cd4579"
+        },
+        {
+            "binding": "RATE_LIMIT",
+            "id": "3e8f221b3ceb4c0c8078b61810cd4579"
         }
     ],
     "observability": {

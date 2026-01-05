@@ -1,35 +1,81 @@
---- 
-import BaseLayout from "@/layouts/BaseLayout.astro"; 
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
 import { projects } from "@/data/projects";
---- 
+import type { Project } from "@/data/projects";
+---
 
-<BaseLayout> <main class="min-h-screen"> <section
-class="max-w-6xl mx-auto px-6 py-20 lg:py-32"> <!-- Header --> <div
-class="mb-16"> <a href="/" class="inline-flex items-center gap-2 text-zinc-500
-dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white mb-8
-transition-colors"> <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-stroke="currentColor" stroke-width="2"> <path stroke-linecap="round"
-stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /> </svg>
-<span>返回首页</span> </a> <h1 class="text-4xl lg:text-5xl font-bold
-text-zinc-900 dark:text-white mb-4">项目</h1> <p class="text-lg text-zinc-600
-dark:text-zinc-400">从微信小游戏到 Shopify 独立站，再到 Cloudflare 边缘计算</p>
-</div> <!-- Projects Grid --> <div class="grid grid-cols-1 md:grid-cols-2
-gap-8"> {projects.map((project) => ( <a href={project.link}
-target={project.link.startsWith('http') ? '_blank' : '_self'} class="group
-block" > <div class="h-full relative overflow-hidden rounded-2xl bg-zinc-100
-dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800
-hover:border-indigo-500/50 transition-all duration-300"> <!-- Image --> <div
-class="aspect-video overflow-hidden"> <img src={project.image}
-alt={project.title} class="w-full h-full object-cover group-hover:scale-105
-transition-transform duration-500" /> </div> <!-- Content --> <div class="p-6">
-<div class="flex items-center gap-2 mb-3"> <span class="text-zinc-500
-dark:text-zinc-400 w-6 h-6 flex items-center justify-center"
-set:html={project.icon} /> <span class="text-xs font-medium text-zinc-500
-dark:text-zinc-400 uppercase tracking-wider">{project.type}</span> </div> <h3
-class="text-xl font-semibold text-zinc-900 dark:text-white mb-3
-group-hover:text-indigo-600 dark:group-hover:text-indigo-400
-transition-colors">{project.title}</h3> <p class="text-zinc-600
-dark:text-zinc-400 mb-4">{project.description}</p> <div class="flex flex-wrap
-gap-2"> {project.tags.map((tag) => ( <span class="text-xs px-2 py-1 rounded-full
-bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">{tag}</span> ))}
-</div> </div> </div> </a> ))} </div> </section> </main> </BaseLayout>
+<BaseLayout>
+    <main class="min-h-screen">
+        <section class="max-w-6xl mx-auto px-6 py-20 lg:py-32">
+            <!-- Header -->
+            <div class="mb-16">
+                <a href="/" class="inline-flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white mb-8 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>返回首页</span>
+                </a>
+                <h1 class="text-4xl lg:text-5xl font-bold text-zinc-900 dark:text-white mb-4">项目</h1>
+                <p class="text-lg text-zinc-600 dark:text-zinc-400">从微信小游戏到 Shopify 独立站，再到 Cloudflare 边缘计算</p>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="projects grid grid-cols-1 md:grid-cols-2 gap-8">
+                {projects.map((project) => (
+                    <a
+                        href={project.link}
+                        data-message={project.message}
+                        target="_blank"
+                        class="group block"
+                    >
+                        <div class="h-full relative overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-500/50 transition-all duration-300">
+                            <!-- Image -->
+                            <div class="aspect-video overflow-hidden">
+                                <img
+                                    src={project.image}
+                                    alt={project.title}
+                                    loading="lazy"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                            </div>
+
+                            <!-- Content -->
+                            <div class="p-6">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="text-zinc-500 dark:text-zinc-400 w-6 h-6 flex items-center justify-center" set:html={project.icon} />
+                                    <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{project.type}</span>
+                                </div>
+                                <h3 class="text-xl font-semibold text-zinc-900 dark:text-white mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{project.title}</h3>
+                                <p class="text-zinc-600 dark:text-zinc-400 mb-4">{project.description}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    {project.tags.map((tag) => (
+                                        <span class="text-xs px-2 py-1 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">{tag}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </section>
+    </main>
+</BaseLayout>
+
+<script type="module" is:inline>
+        // 找到父容器（性能更好）
+        const projectsContainer = document.querySelector('.projects');
+        
+        // 事件委托：绑定到父容器，只绑定一次
+        projectsContainer.addEventListener('click', (event) => {
+            // 找到真正点击的a标签
+            const link = event.target.closest('.group.block[data-message]:not([data-message=""])');
+
+            if (!link) return; // 不是目标元素，直接返回
+            
+            const message = link.dataset.message;
+            
+            event.preventDefault();
+            alert(message);
+        });
+
+</script>

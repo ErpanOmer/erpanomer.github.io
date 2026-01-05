@@ -1,5 +1,6 @@
 ---
 import { projects } from "@/data/projects";
+import type { Project } from "@/data/projects";
 ---
 
 <div class="py-20 lg:py-32">
@@ -13,11 +14,12 @@ import { projects } from "@/data/projects";
     </div>
 
     <!-- Projects Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="projects grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {projects.map((project) => (
             <a 
                 href={project.link} 
-                target={project.link.startsWith('http') ? '_blank' : '_self'}
+                target="_blank"
+                data-message={project.message}
                 class="group block"
             >
                 <div class="relative overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-500/50 transition-all duration-300">
@@ -63,3 +65,22 @@ import { projects } from "@/data/projects";
         </a>
     </div>
 </div>
+
+<script type="module" is:inline>
+        // 找到父容器（性能更好）
+        const projectsContainer = document.querySelector('.projects');
+        
+        // 事件委托：绑定到父容器，只绑定一次
+        projectsContainer.addEventListener('click', (event) => {
+            // 找到真正点击的a标签
+            const link = event.target.closest('.group.block[data-message]:not([data-message=""])');
+
+            if (!link) return; // 不是目标元素，直接返回
+            
+            const message = link.dataset.message;
+            
+            event.preventDefault();
+            alert(message);
+        });
+
+</script>

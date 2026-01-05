@@ -1,6 +1,7 @@
 .astro/
 .github/
 .vscode/
+.trae/
 ./src
 ./public
 ./tsconfig.json
