@@ -21,6 +21,13 @@
             "id": "3e8f221b3ceb4c0c8078b61810cd4579"
         }
     ],
+    "d1_databases": [
+        {
+            "binding": "BLOG_DB",
+            "database_name": "erpanomer-blog-db",
+            "database_id": "1e228212-c7c7-4943-a9d8-b20b74ff8ce8"
+        }
+    ],
     "observability": {
         "enabled": true
     },

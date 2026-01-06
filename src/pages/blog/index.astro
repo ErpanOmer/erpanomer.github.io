@@ -2,9 +2,15 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
+import { getAllPostStats } from "@/lib/db";
+
 const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+// Fetch stats for all posts in one batch efficiently
+const db = Astro.locals.runtime.env.BLOG_DB;
+const postStats = await getAllPostStats(db);
 ---
 
 <BaseLayout
@@ -51,37 +57,54 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
                                     />
                                 </div>
                             )}
-                            <div class="flex-1 min-w-0">
-                                <time
-                                    class="text-sm text-zinc-500"
-                                    datetime={post.data.pubDate.toISOString()}
-                                >
-                                    {post.data.pubDate.toLocaleDateString(
-                                        "zh-CN",
-                                        {
-                                            year: "numeric",
-                                            month: "short",
-                                            day: "numeric",
-                                        },
-                                    )}
-                                </time>
-                                <h2 class="text-base sm:text-lg font-semibold text-white mt-1.5 mb-1.5 group-hover:text-indigo-400 transition-colors leading-snug">
-                                    {post.data.title}
-                                </h2>
-                                <p class="text-sm text-zinc-400 line-clamp-2 leading-relaxed">
-                                    {post.data.description}
-                                </p>
-                                {post.data.tags.length > 0 && (
-                                    <div class="flex flex-wrap gap-1.5 mt-3">
-                                        {post.data.tags
-                                            .slice(0, 3)
-                                            .map((tag) => (
-                                                <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
-                                                    {tag}
-                                                </span>
-                                            ))}
+                            <div class="flex-1 min-w-0 flex flex-col h-full">
+                                <div>
+                                    <time
+                                        class="text-sm text-zinc-500"
+                                        datetime={post.data.pubDate.toISOString()}
+                                    >
+                                        {post.data.pubDate.toLocaleDateString(
+                                            "zh-CN",
+                                            {
+                                                year: "numeric",
+                                                month: "short",
+                                                day: "numeric",
+                                            },
+                                        )}
+                                    </time>
+                                    <h2 class="text-base sm:text-lg font-semibold text-white mt-1.5 mb-1.5 group-hover:text-indigo-400 transition-colors leading-snug">
+                                        {post.data.title}
+                                    </h2>
+                                    <p class="text-sm text-zinc-400 line-clamp-2 leading-relaxed">
+                                        {post.data.description}
+                                    </p>
+                                </div>
+                                
+                                <div class="mt-auto pt-4 flex items-end justify-between">
+                                    {post.data.tags.length > 0 ? (
+                                        <div class="flex flex-wrap gap-1.5">
+                                            {post.data.tags
+                                                .slice(0, 3)
+                                                .map((tag) => (
+                                                    <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                        </div>
+                                    ) : <div></div>}
+
+                                    <!-- Views & Likes -->
+                                    <div class="flex items-center gap-3 text-xs font-medium text-zinc-500 shrink-0">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            <span>{postStats[post.slug]?.views || 0}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-red-500/70 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                            <span>{postStats[post.slug]?.likes || 0}</span>
+                                        </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </article>
                     </a>

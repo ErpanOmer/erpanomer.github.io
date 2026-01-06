@@ -1,0 +1,107 @@
+---
+const { headings } = Astro.props;
+
+interface Heading {
+    depth: number;
+    slug: string;
+    text: string;
+}
+---
+
+<nav class="toc-container mb-8 hidden lg:block">
+    <div class="mb-4 border-b border-gh-border pb-2">
+        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">
+            目录
+        </h3>
+    </div>
+
+    <ul
+        id="toc-list"
+        class="space-y-1 relative border-l border-gh-border transition-all duration-300 pr-2"
+    >
+        <!-- Active Indicator Line -->
+        <div
+            id="toc-indicator"
+            class="absolute left-[-1.5px] top-0 w-[3px] h-6 bg-indigo-500 rounded-r shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-300 ease-out opacity-0 pointer-events-none"
+        >
+        </div>
+
+        {
+            headings.map((heading: Heading) => (
+                <li
+                    class={`toc-item depth-${heading.depth} transition-all duration-200`}
+                    data-slug={heading.slug}
+                >
+                    <a
+                        href={`#${heading.slug}`}
+                        class="block py-1.5 pr-2 pl-4 text-sm text-gh-muted hover:text-indigo-300 transition-colors border-l-2 border-transparent hover:border-indigo-500/30"
+                        style={`margin-left: ${(heading.depth - 1) * 0.5}rem`}
+                    >
+                        {heading.text}
+                    </a>
+                </li>
+            ))
+        }
+    </ul>
+</nav>
+
+<style>
+    /* Active State Styling */
+    .toc-item.active a {
+        @apply text-indigo-400 font-medium;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // 1. Spy Scroll Logic
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    const id = entry.target.getAttribute("id");
+                    if (entry.isIntersecting) {
+                        updateActive(id);
+                    }
+                });
+            },
+            { rootMargin: "-100px 0px -66% 0px" },
+        );
+
+        document
+            .querySelectorAll(".prose h1, .prose h2, .prose h3, .prose h4")
+            .forEach((section) => {
+                observer.observe(section);
+            });
+
+        const tocList = document.getElementById("toc-list");
+        const indicator = document.getElementById("toc-indicator");
+
+        function updateActive(id: string | null) {
+            if (!id) return;
+
+            document
+                .querySelectorAll(".toc-item")
+                .forEach((item) => item.classList.remove("active"));
+
+            const activeLink = document.querySelector(
+                `.toc-item[data-slug="${id}"]`,
+            );
+            if (activeLink) {
+                activeLink.classList.add("active");
+
+                if (indicator && tocList) {
+                    const listRect = tocList.getBoundingClientRect();
+                    const linkRect = activeLink.getBoundingClientRect();
+
+                    // Calculate relative top position
+                    // Since toc-list is not scrolling internally anymore in this version, just diff
+                    const relativeTop = linkRect.top - listRect.top;
+
+                    indicator.style.transform = `translateY(${relativeTop}px)`;
+                    indicator.style.height = `${linkRect.height}px`;
+                    indicator.classList.remove("opacity-0");
+                }
+            }
+        }
+    });
+</script>

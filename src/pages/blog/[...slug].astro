@@ -1,8 +1,14 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection, getEntry } from "astro:content";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { getPost, getRecentPosts, getPopularPosts, syncPost } from "@/lib/db";
+
+import BlogStats from "@/components/BlogStats.astro";
+import AuthorCard from "@/components/AuthorCard.astro";
+import PostSidebarList from "@/components/PostSidebarList.astro";
+import TableOfContents from "@/components/TableOfContents.astro";
 
 // SSR Mode: fetch post dynamically based on slug param
 const { slug } = Astro.params;
@@ -12,36 +18,69 @@ if (!slug) {
     return Astro.redirect("/blog");
 }
 
-const post = await getEntry("blog", slug);
+const postEntry = await getEntry("blog", slug);
 
-if (!post) {
+if (!postEntry) {
     return Astro.redirect("/blog");
 }
 
-const { Content, remarkPluginFrontmatter } = await post.render();
-const lastModified = dayjs(remarkPluginFrontmatter.lastModified).format(
-    "YYYY-MM-DD HH:mm:ss",
-);
+// Fetch from DB to override metadata
+const db = Astro.locals.runtime.env.BLOG_DB;
+let dbPost = await getPost(db, slug);
 
-console.log(lastModified);
+// Lazy Sync: If post doesn't exist in DB, insert it from frontmatter
+if (!dbPost) {
+    await syncPost(db, {
+        slug,
+        title: postEntry.data.title,
+        description: postEntry.data.description,
+        pubDate: postEntry.data.pubDate,
+        lastModified: postEntry.data.lastModified,
+        author: postEntry.data.author,
+        cover: postEntry.data.cover,
+        tags: postEntry.data.tags,
+        draft: postEntry.data.draft ?? false,
+    });
+    // Optional: Valid dbPost object for immediate use (though fallback handles it)
+    // dbPost = { ... }
+}
+
+// Merge: DB > Frontmatter
+const title = dbPost?.title || postEntry.data.title;
+const description = dbPost?.description || postEntry.data.description;
+const pubDate = dbPost?.pub_date
+    ? new Date(dbPost.pub_date)
+    : postEntry.data.pubDate;
+const lastModifiedVal = dbPost?.last_modified
+    ? new Date(dbPost.last_modified)
+    : postEntry.data.lastModified;
+const author = dbPost?.author || postEntry.data.author;
+const cover = dbPost?.cover || postEntry.data.cover;
+const tags = dbPost?.tags ? JSON.parse(dbPost.tags) : postEntry.data.tags;
+
+const recentPosts = await getRecentPosts(db, 3);
+const popularPosts = await getPopularPosts(db, 3);
+
+const { Content, remarkPluginFrontmatter, headings } = await postEntry.render();
+const lastModifiedFormatted = dayjs(
+    lastModifiedVal || remarkPluginFrontmatter.lastModified,
+).format("YYYY-MM-DD HH:mm:ss");
 
 const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: post.data.title,
-    description: post.data.description,
-    datePublished: post.data.pubDate.toISOString(),
-    dateModified: remarkPluginFrontmatter.lastModified
-        ? dayjs(remarkPluginFrontmatter.lastModified).toISOString()
-        : post.data.pubDate.toISOString(),
+    headline: title,
+    description: description,
+    datePublished: pubDate.toISOString(),
+    dateModified: lastModifiedVal
+        ? dayjs(lastModifiedVal).toISOString()
+        : pubDate.toISOString(),
     author: {
         "@type": "Person",
-        name: post.data.author,
+        name: author,
     },
     url: new URL(Astro.url.pathname, Astro.site).toString(),
-    image: post.data.cover
-        ? new URL(post.data.cover, Astro.site).toString()
-        : undefined,
+    image: cover ? new URL(cover, Astro.site).toString() : undefined,
     mainEntityOfPage: {
         "@type": "WebPage",
         "@id": new URL(Astro.url.pathname, Astro.site).toString(),
@@ -50,12 +89,12 @@ const jsonLd = {
 ---
 
 <BaseLayout
-    title={post.data.title}
-    description={post.data.description}
-    image={post.data.cover}
+    title={title}
+    description={description}
+    image={cover}
     type="article"
-    publishedTime={post.data.pubDate}
-    tags={post.data.tags}
+    publishedTime={pubDate}
+    tags={tags}
 >
     <script
         type="application/ld+json"
@@ -63,139 +102,141 @@ const jsonLd = {
         slot="head"
     />
 
-    <article class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-        <!-- Back Link -->
-        <a
-            href="/blog"
-            class="inline-flex items-center gap-2 text-sm text-gh-muted hover:text-white mb-8 transition-colors"
-        >
-            <svg
-                class="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            <span>返回博客</span>
-        </a>
-
-        <!-- Header -->
-        <header class="mb-10">
-            <h1
-                class="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight"
-            >
-                {post.data.title}
-            </h1>
-            <div
-                class="flex items-center gap-3 text-sm text-gh-muted mb-4 flex-wrap-reverse"
-            >
-                <div class="flex items-center gap-1.5">
+    <!-- 3-Column Layout Container -->
+    <div
+        class="max-w-[1280px] mx-auto px-4 sm:px-6 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-[60px_1fr_320px] gap-8 lg:gap-12"
+    >
+        <!-- Left Column: Actions (Sticky on Desktop) -->
+        <div class="hidden lg:block relative">
+            <div class="sticky top-32 flex flex-col gap-8 items-center">
+                <a
+                    href="/blog"
+                    class="flex items-center justify-center w-12 h-12 rounded-full bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:border-white/20 hover:bg-white/10 transition-all duration-300 mb-4 group"
+                    title="Back to Blog"
+                >
                     <svg
-                        class="w-4 h-4"
+                        class="w-5 h-5 transform transition-transform"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                    >
-                        <path
+                        ><path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        ></path>
-                    </svg>
-                    <span>{post.data.author}</span>
-                </div>
-                <span>·</span>
-                <span>约 5 分钟阅读</span>
-                {
-                    remarkPluginFrontmatter.lastModified && (
-                        <>
-                            <span class="hidden sm:inline">·</span>
-                            <div
-                                class="flex items-center gap-1.5"
-                                title="Last Modified"
-                            >
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                                <span>Updated: {lastModified}</span>
-                            </div>
-                        </>
-                    )
-                }
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg
+                    >
+                </a>
+
+                <BlogStats slug={slug} vertical={true} />
             </div>
-            <!-- <p class="text-base text-gh-muted leading-relaxed">
-                {post.data.description}
-            </p> -->
-            {
-                post.data.tags.length > 0 && (
-                    <div class="flex flex-wrap gap-2 mt-6">
-                        {post.data.tags.map((tag) => (
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-gh-surface text-gh-muted border border-gh-border">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-                )
-            }
-        </header>
-
-        <!-- Cover Image -->
-        {
-            post.data.cover && (
-                <div class="mb-10 -mx-4 sm:mx-0 sm:rounded-xl overflow-hidden">
-                    <img
-                        src={post.data.cover}
-                        alt={post.data.title}
-                        class="w-full"
-                        loading="eager"
-                    />
-                </div>
-            )
-        }
-
-        <!-- Content -->
-        <div class="prose-blog">
-            <Content />
         </div>
 
-        <!-- Footer -->
-        <footer class="mt-12 pt-8 border-t border-gh-border">
+        <!-- Center Column: Content -->
+        <article class="min-w-0">
+            <!-- Mobile Back Link -->
             <a
                 href="/blog"
-                class="inline-flex items-center gap-2 text-sm text-indigo-400 hover:underline underline-offset-4"
+                class="lg:hidden inline-flex items-center gap-2 text-sm text-gh-muted hover:text-white mb-8 transition-colors"
             >
                 <svg
                     class="w-4 h-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                    stroke-width="2"
-                >
-                    <path
+                    ><path
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                <span>查看更多文章</span>
+                        stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg
+                >
+                <span>Back to Blog</span>
             </a>
-        </footer>
-    </article>
+
+            <!-- Header -->
+            <header>
+                <h1
+                    class="text-xl md:text-4xl font-extrabold text-white mb-6 leading-tight tracking-tight"
+                >
+                    {title}
+                </h1>
+                <div class="flex flex-wrap gap-2 gap-y-1 mb-4">
+                    {
+                        tags.length > 0 &&
+                            tags.map((tag: string) => (
+                                <span class="text-xs font-medium px-2 py-0.5 rounded text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 uppercase tracking-wide">
+                                    {tag}
+                                </span>
+                            ))
+                    }
+                </div>
+                <div
+                    class="flex items-center gap-2 text-sm text-gh-muted pb-6 lg:pb-8"
+                >
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-xs uppercase"
+                        >
+                            <img
+                                src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_limit,w_120/f_auto/q_auto/v1/avatar_zjw8rn.png"
+                                alt={author}
+                                loading="lazy"
+                                class="rounded-full"
+                            />
+                        </div>
+                        <span class="font-medium text-gray-300">{author}</span>
+                    </div>
+                    <span>·</span>
+                    <span>{new Date(pubDate).toLocaleDateString()}</span>
+                    <span>·</span>
+                    <span>{remarkPluginFrontmatter.minutesRead}</span>
+                </div>
+            </header>
+
+            <!-- Cover Image -->
+            {
+                cover && (
+                    <div class="mb-6 md:mb-12 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+                        <img
+                            src={cover}
+                            alt={title}
+                            class="w-full object-cover"
+                            loading="eager"
+                        />
+                    </div>
+                )
+            }
+
+            <!-- Content -->
+            <div
+                class="prose-blog prose prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-img:rounded-xl"
+            >
+                <Content />
+            </div>
+        </article>
+
+        <!-- Right Column: Sidebar (Sticky on Desktop) -->
+        <div class="hidden lg:block relative">
+            <div
+                class="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-4 custom-scrollbar"
+            >
+                <AuthorCard author={author} />
+                <TableOfContents headings={headings} />
+                <PostSidebarList title="Recent Posts" posts={recentPosts} />
+                <div class="mt-12 pb-8">
+                    <PostSidebarList
+                        title="Popular Posts"
+                        posts={popularPosts}
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Action Bar (Fixed Bottom) -->
+    <div class="lg:hidden">
+        <BlogStats slug={slug} vertical={false} />
+    </div>
+
     <!-- Lightbox UI -->
     <div
         id="lightbox"
@@ -236,6 +277,24 @@ const jsonLd = {
     </div>
 
     <style is:global>
+        html {
+            scroll-padding-top: 100px; /* Fix TOC anchor positioning */
+        }
+        /* Custom scrollbar for sidebar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+            background-color: rgba(99, 102, 241, 0.3);
+        }
+
         /* Optimization: Zoom cursor for blog images */
         .prose-blog img {
             cursor: zoom-in;
@@ -276,7 +335,6 @@ const jsonLd = {
             };
 
             // Optimization: Event Delegation
-            // Instead of attaching listeners to every image, we attach one to the container
             const contentContainer = document.querySelector(".prose-blog");
             if (contentContainer) {
                 contentContainer.addEventListener("click", (e) => {

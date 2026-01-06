@@ -4,6 +4,7 @@ import path from 'path'
 import sitemap from '@astrojs/sitemap';
 import cloudflare from '@astrojs/cloudflare';
 import { remarkModifiedTime } from './remark-modified-time.mjs';
+import { remarkReadingTime } from './remark-reading-time.mjs';
 
 export default defineConfig({
   site: 'https://erpanomer.nurverse.com',
@@ -42,6 +43,6 @@ export default defineConfig({
     open: true
   },
   markdown: {
-    remarkPlugins: [remarkModifiedTime],
+    remarkPlugins: [remarkModifiedTime, remarkReadingTime],
   },
 })

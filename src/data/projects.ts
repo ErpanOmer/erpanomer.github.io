@@ -42,7 +42,7 @@ export const projects: Project[] = [
         description: "一款基于微信小游戏平台开发的 Flappy Bird 风格休闲小游戏，采用云开发技术，支持好友排行榜、月度赛季系统等社交功能",
         tags: ["微信小游戏", "Flappy Bird", "云开发", "社交功能"],
         image: getCldImageUrl({
-            src: "8b116889-af12-4694-afa0-08a9a5919a62_fezfxk",
+            src: "logo_c7dz8c",
             width: 600
         }),
         link: "",

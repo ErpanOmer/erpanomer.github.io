@@ -1,0 +1,249 @@
+---
+interface Props {
+    slug: string;
+    vertical?: boolean;
+}
+
+const { slug, vertical = false } = Astro.props;
+---
+
+<blog-stats
+    data-slug={slug}
+    class:list={[
+        "flex items-center not-prose",
+        vertical
+            ? "flex-col gap-4" // Desktop Vertical
+            : "fixed bottom-0 left-0 right-0 z-50 bg-[#0d1117]/80 backdrop-blur-xl border-t border-white/5 py-3 px-6 justify-around safe-area-pb", // Mobile Fixed Bottom
+    ]}
+>
+    <!-- Likes -->
+    <div
+        class:list={[
+            "flex items-center gap-1.5",
+            vertical ? "flex-col" : "flex-row",
+        ]}
+    >
+        <button
+            class="like-button group relative flex items-center justify-center rounded-full bg-white/5 border border-white/5 hover:border-red-500/30 hover:bg-red-500/10 transition-all duration-300 active:scale-95 touch-manipulation"
+            class:list={[vertical ? "w-12 h-12" : "w-10 h-10"]}
+            title="Like this post"
+            aria-label="Like this post"
+        >
+            <div
+                class="absolute inset-0 rounded-full ring-0 ring-red-500/0 group-active:ring-4 group-active:ring-red-500/20 transition-all"
+            >
+            </div>
+            <!-- Heart Icon -->
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="text-gray-400 group-hover:text-red-500 transition-colors duration-300 like-icon"
+            >
+                <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+            </svg>
+        </button>
+        <span
+            class="likes-count text-sm font-medium text-gray-400 animate-pulse rounded min-w-[20px] h-5 inline-flex items-center justify-center"
+        ></span>
+    </div>
+
+    <!-- Views -->
+    <div
+        class:list={[
+            "flex items-center gap-1.5",
+            vertical ? "flex-col" : "flex-row",
+        ]}
+    >
+        <div
+            class="flex items-center justify-center rounded-full bg-white/5 border border-white/5 text-gray-400 cursor-default"
+            class:list={[vertical ? "w-12 h-12" : "w-10 h-10"]}
+            title="Total Views"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                ></path><circle cx="12" cy="12" r="3"></circle></svg
+            >
+        </div>
+        <span
+            class="views-count text-sm font-medium text-gray-400 animate-pulse rounded min-w-[24px] h-5 inline-flex items-center justify-center"
+        ></span>
+    </div>
+
+    <!-- Share -->
+    <button
+        class="group flex items-center justify-center rounded-full bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all duration-300 active:scale-95 touch-manipulation"
+        class:list={[vertical ? "w-12 h-12" : "w-10 h-10"]}
+        title="Share"
+        aria-label="Share this post"
+        onclick="navigator.clipboard.writeText(window.location.href); this.classList.add('text-green-400', 'border-green-400'); setTimeout(() => this.classList.remove('text-green-400', 'border-green-400'), 1500);"
+    >
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-gray-400 group-hover:text-indigo-400 transition-colors"
+            ><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"
+            ></circle><circle cx="18" cy="19" r="3"></circle><line
+                x1="8.59"
+                x2="15.42"
+                y1="13.51"
+                y2="17.49"></line><line
+                x1="15.41"
+                x2="8.59"
+                y1="6.51"
+                y2="10.49"></line></svg
+        >
+    </button>
+</blog-stats>
+
+<style>
+    .safe-area-pb {
+        padding-bottom: env(safe-area-inset-bottom, 1rem);
+    }
+
+    /* Liked State Styles */
+    .like-button.is-liked {
+        @apply border-red-500/50 bg-red-500/10 cursor-default;
+    }
+    .like-button.is-liked .like-icon {
+        @apply text-red-500 fill-current;
+    }
+</style>
+
+<script>
+    // Track viewed slugs globally for this page load to prevent duplicate view counts
+    const countedViews = new Set<string>();
+
+    class BlogStats extends HTMLElement {
+        private observer: IntersectionObserver | null = null;
+        private slug: string | undefined;
+
+        constructor() {
+            super();
+            this.slug = this.dataset.slug;
+        }
+
+        connectedCallback() {
+            if (!this.slug) return;
+
+            // Use IntersectionObserver to lazy load stats ensuring only visible instances fetch data
+            this.observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        this.init(this.slug!);
+                        this.observer?.disconnect();
+                    }
+                });
+            });
+            this.observer.observe(this);
+        }
+
+        disconnectedCallback() {
+            this.observer?.disconnect();
+        }
+
+        async init(slug: string) {
+            const viewsEl = this.querySelector(".views-count");
+            const likesEl = this.querySelector(".likes-count");
+            const likeBtn = this.querySelector(".like-button");
+
+            const updateUI = (data: {
+                views: number;
+                likes: number;
+                userHasLiked: boolean;
+            }) => {
+                if (viewsEl) {
+                    viewsEl.textContent = data.views.toLocaleString();
+                    viewsEl.classList.remove("animate-pulse", "bg-white/5");
+                }
+                if (likesEl) {
+                    likesEl.textContent = data.likes.toLocaleString();
+                    likesEl.classList.remove("animate-pulse", "bg-white/5");
+                }
+
+                if (data.userHasLiked) {
+                    likeBtn?.classList.add("is-liked");
+                    if (likeBtn) (likeBtn as HTMLButtonElement).disabled = true;
+                }
+            };
+
+            // 1. Fetch current stats (GET)
+            // We fetch this for every visible instance to ensure UI is up to date
+            try {
+                const res = await fetch(`/api/stats/${slug}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    updateUI(data);
+                }
+            } catch (e) {
+                console.error("Failed to load stats", e);
+            }
+
+            // 2. Register View (POST) - Debounced & Once per page load
+            if (!countedViews.has(slug)) {
+                countedViews.add(slug); // Mark as processed
+                setTimeout(() => {
+                    fetch(`/api/stats/${slug}`, {
+                        method: "POST",
+                        body: JSON.stringify({ type: "view" }),
+                        headers: { "Content-Type": "application/json" },
+                    })
+                        .then((res) => res.json())
+                        .then(updateUI)
+                        .catch(() => {});
+                }, 2000);
+            }
+
+            // Like Interaction
+            likeBtn?.addEventListener("click", async () => {
+                if (likeBtn.classList.contains("is-liked")) return;
+
+                // Optimistic UI
+                if (likesEl)
+                    likesEl.textContent = (
+                        parseInt(likesEl.textContent || "0") + 1
+                    ).toString();
+
+                likeBtn.classList.add("is-liked");
+                (likeBtn as HTMLButtonElement).disabled = true;
+
+                try {
+                    const res = await fetch(`/api/stats/${slug}`, {
+                        method: "POST",
+                        body: JSON.stringify({ type: "like" }),
+                        headers: { "Content-Type": "application/json" },
+                    });
+                    const data = await res.json();
+                    updateUI(data);
+                } catch (e) {
+                    console.error("Like failed", e);
+                }
+            });
+        }
+    }
+
+    customElements.define("blog-stats", BlogStats);
+</script>
