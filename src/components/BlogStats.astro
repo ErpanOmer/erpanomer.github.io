@@ -13,7 +13,7 @@ const { slug, vertical = false } = Astro.props;
         "flex items-center not-prose",
         vertical
             ? "flex-col gap-4" // Desktop Vertical
-            : "fixed bottom-0 left-0 right-0 z-50 bg-[#0d1117]/80 backdrop-blur-xl border-t border-white/5 py-3 px-6 justify-around safe-area-pb", // Mobile Fixed Bottom
+            : "fixed bottom-0 left-0 right-0 z-50 bg-[#0d1117]/80 backdrop-blur-xl border-t border-white/5 py-2 px-6 justify-around", // Mobile Fixed Bottom
     ]}
 >
     <!-- Likes -->
@@ -88,12 +88,19 @@ const { slug, vertical = false } = Astro.props;
 
     <!-- Share -->
     <button
-        class="group flex items-center justify-center rounded-full bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all duration-300 active:scale-95 touch-manipulation"
+        class="share-button group relative flex items-center justify-center rounded-full bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all duration-300 active:scale-95 touch-manipulation"
         class:list={[vertical ? "w-12 h-12" : "w-10 h-10"]}
-        title="Share"
+        title="Share this post"
         aria-label="Share this post"
-        onclick="navigator.clipboard.writeText(window.location.href); this.classList.add('text-green-400', 'border-green-400'); setTimeout(() => this.classList.remove('text-green-400', 'border-green-400'), 1500);"
     >
+        <div
+            class="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] py-1 px-2 rounded opacity-0 pointer-events-none transition-opacity duration-300"
+            id="share-tooltip"
+        >
+            Copied!
+        </div>
+
+        <!-- Default Icon -->
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
@@ -104,7 +111,7 @@ const { slug, vertical = false } = Astro.props;
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="text-gray-400 group-hover:text-indigo-400 transition-colors"
+            class="share-icon text-gray-400 group-hover:text-indigo-400 transition-all duration-300 scale-100 rotate-0"
             ><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"
             ></circle><circle cx="18" cy="19" r="3"></circle><line
                 x1="8.59"
@@ -116,14 +123,25 @@ const { slug, vertical = false } = Astro.props;
                 y1="6.51"
                 y2="10.49"></line></svg
         >
+
+        <!-- Success Icon (Hidden initially) -->
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="check-icon absolute text-green-500 transition-all duration-300 scale-0 rotate-90 opacity-0"
+            ><polyline points="20 6 9 17 4 12"></polyline></svg
+        >
     </button>
 </blog-stats>
 
 <style>
-    .safe-area-pb {
-        padding-bottom: env(safe-area-inset-bottom, 1rem);
-    }
-
     /* Liked State Styles */
     .like-button.is-liked {
         @apply border-red-500/50 bg-red-500/10 cursor-default;
@@ -134,12 +152,15 @@ const { slug, vertical = false } = Astro.props;
 </style>
 
 <script>
-    // Track viewed slugs globally for this page load to prevent duplicate view counts
+    import debounce from "lodash-es/debounce";
+    // Track viewed slugs globally to prevent duplicates per session
     const countedViews = new Set<string>();
 
     class BlogStats extends HTMLElement {
         private observer: IntersectionObserver | null = null;
         private slug: string | undefined;
+        private viewTimer: number | undefined;
+        private hasFetchedStats = false;
 
         constructor() {
             super();
@@ -149,99 +170,233 @@ const { slug, vertical = false } = Astro.props;
         connectedCallback() {
             if (!this.slug) return;
 
-            // Use IntersectionObserver to lazy load stats ensuring only visible instances fetch data
-            this.observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        this.init(this.slug!);
-                        this.observer?.disconnect();
-                    }
-                });
-            });
+            this.observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            // 1. Lazy Load Stats (GET) - Only once
+                            if (!this.hasFetchedStats) {
+                                this.fetchStats();
+                                this.hasFetchedStats = true;
+                                // Initialize event listeners once
+                                this.initInteractive();
+                            }
+
+                            // 2. Start View Timer (POST) - "Time on screen" check
+                            if (
+                                !countedViews.has(this.slug!) &&
+                                !this.viewTimer
+                            ) {
+                                this.viewTimer = window.setTimeout(() => {
+                                    this.registerView();
+                                }, 2000); // Only count if visible for 2s
+                            }
+                        } else {
+                            // User scrolled away - Cancel view count
+                            if (this.viewTimer) {
+                                clearTimeout(this.viewTimer);
+                                this.viewTimer = undefined;
+                            }
+                        }
+                    });
+                },
+                { threshold: 0.5 },
+            ); // Require 50% visibility
+
             this.observer.observe(this);
         }
 
         disconnectedCallback() {
+            if (this.viewTimer) clearTimeout(this.viewTimer);
             this.observer?.disconnect();
         }
 
-        async init(slug: string) {
-            const viewsEl = this.querySelector(".views-count");
-            const likesEl = this.querySelector(".likes-count");
-            const likeBtn = this.querySelector(".like-button");
-
-            const updateUI = (data: {
-                views: number;
-                likes: number;
-                userHasLiked: boolean;
-            }) => {
-                if (viewsEl) {
-                    viewsEl.textContent = data.views.toLocaleString();
-                    viewsEl.classList.remove("animate-pulse", "bg-white/5");
-                }
-                if (likesEl) {
-                    likesEl.textContent = data.likes.toLocaleString();
-                    likesEl.classList.remove("animate-pulse", "bg-white/5");
-                }
-
-                if (data.userHasLiked) {
-                    likeBtn?.classList.add("is-liked");
-                    if (likeBtn) (likeBtn as HTMLButtonElement).disabled = true;
-                }
-            };
-
-            // 1. Fetch current stats (GET)
-            // We fetch this for every visible instance to ensure UI is up to date
+        async fetchStats() {
+            if (!this.slug) return;
             try {
-                const res = await fetch(`/api/stats/${slug}`);
+                const res = await fetch(`/api/stats/${this.slug}`);
                 if (res.ok) {
                     const data = await res.json();
-                    updateUI(data);
+                    this.updateUI(data);
                 }
             } catch (e) {
                 console.error("Failed to load stats", e);
             }
+        }
 
-            // 2. Register View (POST) - Debounced & Once per page load
-            if (!countedViews.has(slug)) {
-                countedViews.add(slug); // Mark as processed
-                setTimeout(() => {
-                    fetch(`/api/stats/${slug}`, {
-                        method: "POST",
-                        body: JSON.stringify({ type: "view" }),
-                        headers: { "Content-Type": "application/json" },
-                    })
-                        .then((res) => res.json())
-                        .then(updateUI)
-                        .catch(() => {});
-                }, 2000);
+        async registerView() {
+            if (!this.slug || countedViews.has(this.slug)) return;
+
+            countedViews.add(this.slug);
+            this.viewTimer = undefined; // Clear timer ref
+
+            try {
+                const res = await fetch(`/api/stats/${this.slug}`, {
+                    method: "POST",
+                    body: JSON.stringify({ type: "view" }),
+                    headers: { "Content-Type": "application/json" },
+                });
+                const data = await res.json();
+                this.updateUI(data);
+
+                // We can stop observing now as view is counted
+                this.observer?.disconnect();
+            } catch (e) {
+                // Ignore errors
             }
+        }
+
+        updateUI(data: {
+            views: number;
+            likes: number;
+            userHasLiked: boolean;
+        }) {
+            const viewsEl = this.querySelector(".views-count");
+            const likesEl = this.querySelector(".likes-count");
+            const likeBtn = this.querySelector(".like-button");
+
+            if (viewsEl) {
+                viewsEl.textContent = data.views.toLocaleString();
+                viewsEl.classList.remove("animate-pulse", "bg-white/5");
+            }
+            if (likesEl) {
+                likesEl.textContent = data.likes.toLocaleString();
+                likesEl.classList.remove("animate-pulse", "bg-white/5");
+            }
+            if (data.userHasLiked) {
+                likeBtn?.classList.add("is-liked");
+                if (likeBtn) (likeBtn as HTMLButtonElement).disabled = true;
+            }
+        }
+
+        initInteractive() {
+            const likeBtn = this.querySelector(".like-button");
+            const likesEl = this.querySelector(".likes-count");
+            const shareBtn = this.querySelector(".share-button");
+            const shareIcon = this.querySelector(".share-icon");
+            const checkIcon = this.querySelector(".check-icon");
+            const tooltip = this.querySelector("#share-tooltip");
 
             // Like Interaction
-            likeBtn?.addEventListener("click", async () => {
-                if (likeBtn.classList.contains("is-liked")) return;
+            likeBtn?.addEventListener(
+                "click",
+                debounce(
+                    async () => {
+                        if (likeBtn.classList.contains("is-liked")) return;
 
-                // Optimistic UI
-                if (likesEl)
-                    likesEl.textContent = (
-                        parseInt(likesEl.textContent || "0") + 1
-                    ).toString();
+                        // Optimistic UI
+                        if (likesEl)
+                            likesEl.textContent = (
+                                parseInt(likesEl.textContent || "0") + 1
+                            ).toString();
+                        likeBtn.classList.add("is-liked");
+                        (likeBtn as HTMLButtonElement).disabled = true;
 
-                likeBtn.classList.add("is-liked");
-                (likeBtn as HTMLButtonElement).disabled = true;
+                        try {
+                            await fetch(`/api/stats/${this.slug}`, {
+                                method: "POST",
+                                body: JSON.stringify({ type: "like" }),
+                                headers: { "Content-Type": "application/json" },
+                            });
+                            // No need to fetch updated stats, we trusted optimistic (or we could)
+                        } catch (e) {
+                            console.error("Like failed", e);
+                        }
+                    },
+                    300,
+                    { leading: true, trailing: false },
+                ),
+            );
 
-                try {
-                    const res = await fetch(`/api/stats/${slug}`, {
-                        method: "POST",
-                        body: JSON.stringify({ type: "like" }),
-                        headers: { "Content-Type": "application/json" },
-                    });
-                    const data = await res.json();
-                    updateUI(data);
-                } catch (e) {
-                    console.error("Like failed", e);
-                }
-            });
+            let timer: ReturnType<typeof setTimeout> | null = null;
+            // Share Interaction
+            shareBtn?.addEventListener(
+                "click",
+                debounce(
+                    async () => {
+                        if (timer) {
+                            clearTimeout(timer);
+                        }
+
+                        try {
+                            await navigator.clipboard.writeText(
+                                window.location.href,
+                            );
+
+                            if (shareBtn instanceof HTMLElement) {
+                                shareBtn.classList.add(
+                                    "border-green-500/50",
+                                    "bg-green-500/10",
+                                );
+                                shareBtn.classList.remove(
+                                    "hover:border-indigo-500/30",
+                                    "hover:bg-indigo-500/10",
+                                );
+                            }
+                            shareIcon?.classList.add(
+                                "scale-0",
+                                "rotate-90",
+                                "opacity-0",
+                            );
+                            shareIcon?.classList.remove(
+                                "scale-100",
+                                "rotate-0",
+                            );
+                            checkIcon?.classList.remove(
+                                "scale-0",
+                                "rotate-90",
+                                "opacity-0",
+                            );
+                            checkIcon?.classList.add(
+                                "scale-100",
+                                "rotate-0",
+                                "opacity-100",
+                            );
+                            tooltip?.classList.remove("opacity-0");
+                            tooltip?.classList.add("opacity-100");
+
+                            timer = setTimeout(() => {
+                                if (shareBtn instanceof HTMLElement) {
+                                    shareBtn.classList.remove(
+                                        "border-green-500/50",
+                                        "bg-green-500/10",
+                                    );
+                                    shareBtn.classList.add(
+                                        "hover:border-indigo-500/30",
+                                        "hover:bg-indigo-500/10",
+                                    );
+                                }
+                                shareIcon?.classList.remove(
+                                    "scale-0",
+                                    "rotate-90",
+                                    "opacity-0",
+                                );
+                                shareIcon?.classList.add(
+                                    "scale-100",
+                                    "rotate-0",
+                                );
+                                checkIcon?.classList.add(
+                                    "scale-0",
+                                    "rotate-90",
+                                    "opacity-0",
+                                );
+                                checkIcon?.classList.remove(
+                                    "scale-100",
+                                    "rotate-0",
+                                    "opacity-100",
+                                );
+                                tooltip?.classList.add("opacity-0");
+                                tooltip?.classList.remove("opacity-100");
+                                timer = null;
+                            }, 2000);
+                        } catch (err) {
+                            console.error("Failed to copy", err);
+                        }
+                    },
+                    300,
+                    { leading: true, trailing: false },
+                ),
+            );
         }
     }
 

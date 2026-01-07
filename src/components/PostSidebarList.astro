@@ -24,7 +24,9 @@ interface Post {
                     </h4>
                     <div class="flex items-center gap-2 text-xs text-gh-muted">
                         <span>
-                            {new Date(post.pub_date).toLocaleDateString()}
+                            {new Date(post.pub_date).toLocaleDateString(
+                                "sv-SE",
+                            )}
                         </span>
                         {post.views !== undefined && (
                             <>

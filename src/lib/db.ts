@@ -16,16 +16,16 @@ export interface DBPost {
     userHasLiked?: boolean;
 }
 
-// Helper to hash IP addresses for privacy
-export async function hashIp(ip: string): Promise<string> {
+// Helper to hash Visitor ID / Identifier for privacy
+export async function hashIdentifier(identifier: string): Promise<string> {
     const encoder = new TextEncoder();
-    const data = encoder.encode(ip);
+    const data = encoder.encode(identifier);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function getPost(db: D1Database, slug: string, ip?: string): Promise<DBPost | null> {
+export async function getPost(db: D1Database, slug: string, visitorId?: string): Promise<DBPost | null> {
     const post = await db.prepare(
         "SELECT * FROM posts WHERE slug = ?"
     ).bind(slug).first<DBPost>();
@@ -35,11 +35,11 @@ export async function getPost(db: D1Database, slug: string, ip?: string): Promis
     // Parse tags if needed (it comes as string)
     // post.tags = JSON.parse(post.tags as string);
 
-    if (ip) {
-        const ipHash = await hashIp(ip);
+    if (visitorId) {
+        const idHash = await hashIdentifier(visitorId);
         const likeRecord = await db.prepare(
             "SELECT 1 FROM interactions WHERE slug = ? AND action_type = 'like' AND ip_hash = ?"
-        ).bind(slug, ipHash).first();
+        ).bind(slug, idHash).first();
         post.userHasLiked = !!likeRecord;
     } else {
         post.userHasLiked = false;
@@ -48,15 +48,15 @@ export async function getPost(db: D1Database, slug: string, ip?: string): Promis
     return post;
 }
 
-export async function incrementView(db: D1Database, slug: string, ip: string) {
-    const ipHash = await hashIp(ip);
+export async function incrementView(db: D1Database, slug: string, visitorId: string) {
+    const idHash = await hashIdentifier(visitorId);
     const now = Date.now();
     const fifteenMinutesAgo = now - 15 * 60 * 1000;
 
     // Check for recent view
     const recentView = await db.prepare(
         "SELECT 1 FROM interactions WHERE slug = ? AND action_type = 'view' AND ip_hash = ? AND created_at > ?"
-    ).bind(slug, ipHash, fifteenMinutesAgo).first();
+    ).bind(slug, idHash, fifteenMinutesAgo).first();
 
     if (recentView) {
         return false; // Rate limited
@@ -65,7 +65,7 @@ export async function incrementView(db: D1Database, slug: string, ip: string) {
     // Record interaction
     await db.prepare(
         "INSERT INTO interactions (slug, action_type, ip_hash, created_at) VALUES (?, 'view', ?, ?)"
-    ).bind(slug, ipHash, now).run();
+    ).bind(slug, idHash, now).run();
 
     // Upsert views in posts table
     await db.prepare(`
@@ -76,13 +76,13 @@ export async function incrementView(db: D1Database, slug: string, ip: string) {
     return true;
 }
 
-export async function toggleLike(db: D1Database, slug: string, ip: string) {
-    const ipHash = await hashIp(ip);
+export async function toggleLike(db: D1Database, slug: string, visitorId: string) {
+    const idHash = await hashIdentifier(visitorId);
     const now = Date.now();
 
     const existingLike = await db.prepare(
         "SELECT 1 FROM interactions WHERE slug = ? AND action_type = 'like' AND ip_hash = ?"
-    ).bind(slug, ipHash).first();
+    ).bind(slug, idHash).first();
 
     if (existingLike) {
         return { added: false, error: 'Already liked' };
@@ -90,7 +90,7 @@ export async function toggleLike(db: D1Database, slug: string, ip: string) {
 
     await db.prepare(
         "INSERT INTO interactions (slug, action_type, ip_hash, created_at) VALUES (?, 'like', ?, ?)"
-    ).bind(slug, ipHash, now).run();
+    ).bind(slug, idHash, now).run();
 
     // Upsert likes in posts table
     await db.prepare(`

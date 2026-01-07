@@ -8,6 +8,21 @@ async function viewCounterMiddleware(context, next) {
     let viewCount = 0;
     const env = locals.runtime?.env || {};
 
+    // Visitor ID Logic
+    let visitorId = cookies.get("visitor_id")?.value;
+
+    if (!visitorId) {
+        visitorId = crypto.randomUUID();
+        cookies.set("visitor_id", visitorId, {
+            path: "/",
+            maxAge: 31536000, // 1 year
+            httpOnly: true,
+            secure: true,
+            sameSite: "Lax"
+        });
+    }
+    locals.visitorId = visitorId;
+
     if (env && env.VIEWS) {
         try {
             const hasVisitedCookie = cookies.has("has_visited_today");

@@ -26,7 +26,9 @@ if (!postEntry) {
 
 // Fetch from DB to override metadata
 const db = Astro.locals.runtime.env.BLOG_DB;
-let dbPost = await getPost(db, slug);
+// Use visitorId from middleware for consistent tracking
+const visitorId = Astro.locals.visitorId || "anonymous";
+let dbPost = await getPost(db, slug, visitorId);
 
 // Lazy Sync: If post doesn't exist in DB, insert it from frontmatter
 if (!dbPost) {
@@ -186,7 +188,7 @@ const jsonLd = {
                         <span class="font-medium text-gray-300">{author}</span>
                     </div>
                     <span>·</span>
-                    <span>{new Date(pubDate).toLocaleDateString()}</span>
+                    <span>{new Date(pubDate).toLocaleDateString("sv-SE")}</span>
                     <span>·</span>
                     <span>{remarkPluginFrontmatter.minutesRead}</span>
                 </div>
