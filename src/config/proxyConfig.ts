@@ -35,6 +35,11 @@ export const PROXY_TARGETS: ProxyTarget[] = [
         origin: 'https://leetcode-3d8.pages.dev',
         staticExtensions: ['js', 'css', 'woff2', 'woff', 'png', 'jpg', 'jpeg', 'webp', 'svg', 'ico', 'gif', 'mp4', 'webm']
     },
+    {
+        name: 'learning',
+        origin: 'https://learning-f2f.pages.dev',
+        staticExtensions: ['js', 'css', 'woff2', 'woff', 'png', 'jpg', 'jpeg', 'webp', 'svg', 'ico', 'gif', 'mp4', 'webm']
+    }
 ];
 
 export const PROXY_CONFIG: ProxyConfig = {

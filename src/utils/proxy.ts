@@ -32,7 +32,7 @@ const ERROR_MESSAGES = {
 async function getRateLimitInfo(env: any, clientIP: string): Promise<RateLimitInfo> {
     const key = `rate_limit:${clientIP}`;
     const now = Date.now();
-    
+
     try {
         const data = await env.RATE_LIMIT?.get(key);
         if (data) {
@@ -45,26 +45,26 @@ async function getRateLimitInfo(env: any, clientIP: string): Promise<RateLimitIn
     } catch (e) {
         console.error('Failed to get rate limit info:', e);
     }
-    
+
     return { count: 0, resetTime: now + 60000 };
 }
 
 async function checkRateLimit(env: any, clientIP: string): Promise<{ allowed: boolean; retryAfter?: number }> {
     const info = await getRateLimitInfo(env, clientIP);
     const now = Date.now();
-    
+
     if (now > info.resetTime) {
         info.count = 0;
         info.resetTime = now + 60000;
     }
-    
+
     if (info.count >= PROXY_CONFIG.rateLimitPerMinute) {
         const retryAfter = Math.ceil((info.resetTime - now) / 1000);
         return { allowed: false, retryAfter };
     }
-    
+
     info.count++;
-    
+
     try {
         await env.RATE_LIMIT?.put(
             `rate_limit:${clientIP}`,
@@ -74,19 +74,19 @@ async function checkRateLimit(env: any, clientIP: string): Promise<{ allowed: bo
     } catch (e) {
         console.error('Failed to update rate limit info:', e);
     }
-    
+
     return { allowed: true };
 }
 
 function getClientIP(request: Request): string {
     const cfIP = request.headers.get('CF-Connecting-IP');
     if (cfIP) return cfIP;
-    
+
     const xForwardedFor = request.headers.get('X-Forwarded-For');
     if (xForwardedFor) {
         return xForwardedFor.split(',')[0].trim();
     }
-    
+
     return 'unknown';
 }
 
@@ -99,7 +99,7 @@ function getFileExtension(url: string): string {
 
 function buildCacheControlHeaders(extension: string, contentType: string): string {
     const rule = getCacheRule(extension, contentType);
-    
+
     if (rule) {
         const parts = [`public, max-age=${rule.maxAge}`];
         if (rule.immutable) {
@@ -107,14 +107,14 @@ function buildCacheControlHeaders(extension: string, contentType: string): strin
         }
         return parts.join(', ');
     }
-    
+
     return 'public, max-age=0, must-revalidate';
 }
 
 async function fetchWithTimeout(url: string, options: RequestInit, timeout: number): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
+
     try {
         const response = await fetch(url, {
             ...options,
@@ -155,18 +155,18 @@ export async function proxyRequest(
             };
         }
 
-        if (env && env.RATE_LIMIT) {
-            const clientIP = getClientIP(request);
-            const rateLimitResult = await checkRateLimit(env, clientIP);
-            
-            if (!rateLimitResult.allowed) {
-                console.log(`Rate limit exceeded for IP: ${clientIP}`);
-                return {
-                    error: ERROR_MESSAGES.RATE_LIMITED,
-                    statusCode: 429
-                };
-            }
-        }
+        // if (env && env.RATE_LIMIT) {
+        //     const clientIP = getClientIP(request);
+        //     const rateLimitResult = await checkRateLimit(env, clientIP);
+
+        //     if (!rateLimitResult.allowed) {
+        //         console.log(`Rate limit exceeded for IP: ${clientIP}`);
+        //         return {
+        //             error: ERROR_MESSAGES.RATE_LIMITED,
+        //             statusCode: 429
+        //         };
+        //     }
+        // }
 
         const headers = new Headers(request.headers);
         headers.delete('host');
@@ -202,7 +202,7 @@ export async function proxyRequest(
         };
     } catch (e) {
         console.error('Proxy error:', e);
-        
+
         if (e instanceof Error) {
             if (e.message === ERROR_MESSAGES.TIMEOUT) {
                 return {
@@ -210,7 +210,7 @@ export async function proxyRequest(
                     statusCode: 504
                 };
             }
-            
+
             if (e.message.includes('fetch failed') || e.message.includes('network')) {
                 return {
                     error: ERROR_MESSAGES.NETWORK_ERROR,
@@ -218,7 +218,7 @@ export async function proxyRequest(
                 };
             }
         }
-        
+
         return {
             error: ERROR_MESSAGES.PROXY_ERROR,
             statusCode: 502

@@ -1,9 +1,69 @@
 ---
+interface JuejinStats {
+    follower_count: number;
+    got_view_count: number;
+    got_digg_count: number;
+    post_article_count: number;
+    level: number;
+    power: number;
+    updated_at: number;
+}
+
+const env = Astro.locals.runtime?.env;
+let juejinStats: JuejinStats | null = null;
+
+if (env?.JUEJIN_KV) {
+    try {
+        juejinStats = await env.JUEJIN_KV.get<JuejinStats>(
+            "user_stats",
+            "json",
+        );
+    } catch (e) {
+        console.error("Failed to fetch Juejin stats:", e);
+    }
+}
+
+function formatCount(num: number): string {
+    if (num >= 10000) {
+        return (num / 10000).toFixed(1) + "w";
+    }
+    return num.toLocaleString();
+}
+
 const stats = [
-    { value: "100w+", label: "阅读量", description: "掘金平台", icon: "📊" },
-    { value: "3,000+", label: "粉丝", description: "持续增长中", icon: "👥" },
-    { value: "50+", label: "技术文章", description: "原创分享", icon: "✍️" },
-    { value: "5+", label: "开源项目", description: "GitHub", icon: "🚀" },
+    {
+        value: juejinStats ? formatCount(juejinStats.got_view_count) : "100w+",
+        label: "阅读量",
+        description: "掘金平台",
+        icon: "📊",
+    },
+    {
+        value: juejinStats ? formatCount(juejinStats.follower_count) : "3,000+",
+        label: "粉丝",
+        description: "持续增长中",
+        icon: "👥",
+    },
+    {
+        value: juejinStats
+            ? formatCount(juejinStats.post_article_count)
+            : "50+",
+        label: "技术文章",
+        description: "原创分享",
+        icon: "✍️",
+    },
+    {
+        value: juejinStats ? `Lv.${juejinStats.level}` : "5+",
+        label: "掘金等级",
+        description: "持续创作", // Changed from "GitHub" "开源项目" to match Juejin context or keep mixed?
+        // Original was "开源项目", user provided Juejin data.
+        // "level": 6. Let's use Level instead of "Open Source Projects" if we are strictly showing Juejin stats?
+        // OR keep "Open Source Projects" static?
+        // User said "Update these changes in Achievements.astro".
+        // The 4th item was "开源项目". The provided data has "level" and "power".
+        // I will replace "开源项目" with "掘金等级" or "掘力值"?
+        // Let's stick to "掘金等级" Lv.6 seems cool.
+        icon: "🏅", // Rocket -> Medal
+    },
 ];
 ---
 

@@ -19,6 +19,10 @@
         {
             "binding": "RATE_LIMIT",
             "id": "3e8f221b3ceb4c0c8078b61810cd4579"
+        },
+        {
+            "binding": "JUEJIN_KV",
+            "id": "3e8f221b3ceb4c0c8078b61810cd4579"
         }
     ],
     "d1_databases": [

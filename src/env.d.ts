@@ -6,6 +6,7 @@ type KVNamespace = import("@cloudflare/workers-types").KVNamespace;
 type ENV = {
     VIEWS: KVNamespace;
     BLOG_DB: D1Database;
+    JUEJIN_KV: KVNamespace;
 };
 
 type Runtime = import("@astrojs/cloudflare").Runtime<ENV>;
