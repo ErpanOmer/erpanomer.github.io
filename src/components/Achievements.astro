@@ -32,20 +32,20 @@ function formatCount(num: number): string {
 
 const stats = [
     {
-        value: juejinStats ? formatCount(juejinStats.got_view_count) : "100w+",
+        value: juejinStats ? `${formatCount(juejinStats.got_view_count)}+` : "100w+",
         label: "阅读量",
         description: "掘金平台",
         icon: "📊",
     },
     {
-        value: juejinStats ? formatCount(juejinStats.follower_count) : "3,000+",
+        value: juejinStats ? `${formatCount(juejinStats.follower_count)}+` : "3,000+",
         label: "粉丝",
         description: "持续增长中",
         icon: "👥",
     },
     {
         value: juejinStats
-            ? formatCount(juejinStats.post_article_count)
+            ? `${formatCount(juejinStats.post_article_count)}+`
             : "50+",
         label: "技术文章",
         description: "原创分享",

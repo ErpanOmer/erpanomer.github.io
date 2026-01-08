@@ -33,7 +33,7 @@ async function viewCounterMiddleware(context, next) {
                 viewCount++;
                 await env.VIEWS.put("site_views", viewCount.toString());
                 cookies.set("has_visited_today", "true", {
-                    maxAge: 86400,
+                    maxAge: 31536000,
                     path: "/",
                     httpOnly: true,
                     secure: true,
