@@ -1,6 +1,20 @@
 ---
 import { CldImage } from "astro-cloudinary";
-import me from "@/images/me.jpg";
+
+const menus = [
+    {
+        name: "博客",
+        href: "/blog/",
+    },
+    {
+        name: "项目",
+        href: "/projects/",
+    },
+    {
+        name: "工具集合",
+        href: "/tools/",
+    },
+];
 ---
 
 <header
@@ -24,29 +38,70 @@ import me from "@/images/me.jpg";
                 ></span>
             </div>
             <span
-                class="font-medium text-sm sm:text-base text-gh-muted group-hover:text-white transition-colors inline"
+                class="font-medium text-sm sm:text-base text-gray-400 group-hover:text-white transition-colors inline"
             >
                 ErpanOmer
             </span>
         </a>
 
         <div class="flex items-center gap-0.5 sm:gap-2">
-            <a
-                href="/blog"
-                class="px-2.5 sm:px-3 py-2 rounded-lg text-sm text-gh-muted hover:text-white hover:bg-gh-surface transition-all"
+            <!-- Desktop Navigation -->
+            <div class="hidden sm:flex items-center gap-1 select-none">
+                {
+                    menus.map((menu) => (
+                        <a
+                            href={menu.href}
+                            class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all"
+                        >
+                            {menu.name}
+                        </a>
+                    ))
+                }
+            </div>
+
+            <!-- Mobile Navigation Dropdown -->
+            <div
+                class="sm:hidden relative inline-block text-left"
+                id="nav-dropdown"
             >
-                博客
-            </a>
-            <a
-                href="/projects"
-                class="px-2.5 sm:px-3 py-2 rounded-lg text-sm text-gh-muted hover:text-white hover:bg-gh-surface transition-all"
-            >
-                项目
-            </a>
+                <button
+                    id="nav-dropdown-btn"
+                    class="px-2.5 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all flex items-center gap-1 active:scale-95"
+                >
+                    导航
+                    <svg
+                        class="w-4 h-4 transition-transform duration-200"
+                        id="nav-dropdown-icon"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div
+                    id="nav-dropdown-content"
+                    class="hidden absolute right-0 mt-2 w-36 rounded-xl bg-gh-surface/95 border border-gh-border shadow-2xl overflow-hidden z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
+                >
+                    {
+                        menus.map((menu) => (
+                            <a
+                                href={menu.href}
+                                class="block px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-gh-border/50"
+                            >
+                                {menu.name}
+                            </a>
+                        ))
+                    }
+                </div>
+            </div>
+
             <div class="w-0.5 h-4 sm:h-4 bg-gh-border mx-2"></div>
             <a
                 href="https://juejin.cn/user/3878732754331096"
-                class="p-1 rounded-lg text-gh-muted hover:text-white hover:bg-gh-surface transition-all"
+                class="p-1 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-gh-surface transition-all"
                 title="掘金"
                 target="_blank"
             >
@@ -65,7 +120,7 @@ import me from "@/images/me.jpg";
             </a>
             <a
                 href="https://github.com/ErpanOmer"
-                class="p-1 rounded-lg text-gh-muted hover:text-white hover:bg-gh-surface transition-all"
+                class="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gh-surface transition-all"
                 title="GitHub"
                 target="_blank"
             >
@@ -82,3 +137,44 @@ import me from "@/images/me.jpg";
         </div>
     </nav>
 </header>
+
+<script>
+    function initNavDropdown() {
+        const btn = document.getElementById("nav-dropdown-btn");
+        const content = document.getElementById("nav-dropdown-content");
+        const icon = document.getElementById("nav-dropdown-icon");
+
+        if (!btn || !content || !icon) return;
+
+        // Toggle dropdown
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isHidden = content.classList.contains("hidden");
+
+            if (isHidden) {
+                content.classList.remove("hidden");
+                icon.classList.add("rotate-180");
+            } else {
+                content.classList.add("hidden");
+                icon.classList.remove("rotate-180");
+            }
+        });
+
+        // Close on click outside
+        document.addEventListener("click", (e) => {
+            if (
+                !content.contains(e.target as Node) &&
+                !btn.contains(e.target as Node)
+            ) {
+                content.classList.add("hidden");
+                icon.classList.remove("rotate-180");
+            }
+        });
+    }
+
+    // Initialize on first load
+    initNavDropdown();
+
+    // Re-initialize after Astro view transitions
+    document.addEventListener("astro:page-load", initNavDropdown);
+</script>
