@@ -6,6 +6,9 @@ import cloudflare from '@astrojs/cloudflare';
 import { remarkModifiedTime } from './remark-modified-time.mjs';
 import { remarkReadingTime } from './remark-reading-time.mjs';
 
+// Sitemap: https://erpanomer.nurverse.com/projects/leetcode/sitemap.xml
+// Sitemap: https://erpanomer.nurverse.com/projects/learning/sitemap.xml
+
 export default defineConfig({
   site: 'https://erpanomer.nurverse.com',
   base: '/',
@@ -22,6 +25,7 @@ export default defineConfig({
   },
 
   integrations: [tailwind(), sitemap({
+    customSitemaps: ['https://erpanomer.nurverse.com/projects/leetcode/sitemap.xml', 'https://erpanomer.nurverse.com/projects/learning/sitemap.xml'],
     serialize(item) {
       item.lastmod = new Date();
       return item;
