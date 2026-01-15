@@ -1,4 +1,8 @@
-# ErpanOmer's Personal Website
+<p align="center">
+  <img src="./website.webp" style="border-radius: 10px;" alt="Personal Website" width="600"/>
+</p>
+
+# Personal Website
 
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![Astro](https://img.shields.io/badge/Astro-v5.16.6-orange)

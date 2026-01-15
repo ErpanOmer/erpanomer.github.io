@@ -14,15 +14,15 @@ export interface Project {
 
 export const projects: Project[] = [
     {
-        title: "🗺 店铺地图搜索服务",
-        description: "基于 Vue3 + Vite + TypeScript 开发的店铺地图服务, UI 选用 Ant Design Vue 组件库, Mapbox GL JS 实现店铺网点分布",
-        tags: ["Vue3", "Mapbox GL", "Ant Design Vue", "Cloudflare Workers", "TailwindCSS"],
+        title: "🧑‍💻 基于 Astro 的个人官网",
+        description: "使用 Gemeni 3 Pro 构建的个人官网，基于 Astro 框架，部署在 Cloudflare Workers 上，使用 Cloudinary 存储图片。 官网采用响应式设计，在不同设备上都能有良好的显示效果。",
+        tags: ["Gemeni 3 Pro", "Astro", "Cloudflare Workers", "Cloudinary", "Markdown", "TailwindCSS", "TypeScript"],
         image: getCldImageUrl({
-            src: "screenshot-20260107-174003_rhnvjc",
+            src: "8b116889-af12-4694-afa0-08a9a5919a62_fezfxk",
             width: 600
         }),
-        link: "https://urtopia-test-ride.pages.dev",
-        type: "Map Store",
+        link: "https://github.com/ErpanOmer/erpanomer.github.io",
+        type: "Personal Website",
         icon: algorithm
     },
     {
@@ -35,18 +35,6 @@ export const projects: Project[] = [
         }),
         link: "/projects/leetcode/",
         type: "algorithm",
-        icon: algorithm
-    },
-    {
-        title: "🧑‍💻 基于 Astro 的个人官网",
-        description: "使用 Gemeni 3 Pro 构建的个人官网，基于 Astro 框架，部署在 Cloudflare Workers 上，使用 Cloudinary 存储图片。 官网采用响应式设计，在不同设备上都能有良好的显示效果。",
-        tags: ["Gemeni 3 Pro", "Astro", "Cloudflare Workers", "Cloudinary", "Markdown", "TailwindCSS", "TypeScript"],
-        image: getCldImageUrl({
-            src: "8b116889-af12-4694-afa0-08a9a5919a62_fezfxk",
-            width: 600
-        }),
-        link: "https://github.com/ErpanOmer/erpanomer.github.io",
-        type: "Personal Website",
         icon: algorithm
     },
     {
@@ -73,5 +61,17 @@ export const projects: Project[] = [
         link: "/projects/learning/",
         type: "Learning Notes",
         icon: algorithm
-    }
+    },
+    {
+        title: "🗺 店铺地图搜索服务",
+        description: "基于 Vue3 + Vite + TypeScript 开发的店铺地图服务, UI 选用 Ant Design Vue 组件库, Mapbox GL JS 实现店铺网点分布",
+        tags: ["Vue3", "Mapbox GL", "Ant Design Vue", "Cloudflare Workers", "TailwindCSS"],
+        image: getCldImageUrl({
+            src: "screenshot-20260107-174003_rhnvjc",
+            width: 600
+        }),
+        link: "https://urtopia-test-ride.pages.dev",
+        type: "Map Store",
+        icon: algorithm
+    },
 ];
