@@ -25,7 +25,7 @@ export default defineConfig({
   },
 
   integrations: [tailwind(), sitemap({
-    customSitemaps: ['https://erpanomer.nurverse.com/projects/leetcode/sitemap.xml', 'https://erpanomer.nurverse.com/projects/learning/sitemap.xml'],
+    customSitemaps: ['https://erpanomer.nurverse.com/projects/leetcode/sitemap.xml', 'https://erpanomer.nurverse.com/projects/learning/sitemap.xml', 'https://erpanomer.nurverse.com/sitemap-blog.xml'],
     serialize(item) {
       item.lastmod = new Date();
       return item;

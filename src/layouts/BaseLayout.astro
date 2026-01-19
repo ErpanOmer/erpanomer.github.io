@@ -49,7 +49,6 @@ const viewCount = Astro.locals.viewCount || 0;
   href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&subset=latin&display=optional" 
   rel="stylesheet"> -->
 
-
     <!-- Primary Meta Tags -->
     <title>{fullTitle}</title>
     <meta name="title" content={fullTitle} />
@@ -101,13 +100,23 @@ const viewCount = Astro.locals.viewCount || 0;
 
     <!-- Favicon -->
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="128x128" href="/favicon-128x128.png" />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      sizes="180x180"
+      href="/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="128x128"
+      href="/favicon-128x128.png"
+    />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64x64.png" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <!-- <link rel="icon" type="image/x-icon" href="/favicon.ico" /> -->
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Canonical URL -->
