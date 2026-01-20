@@ -1,6 +1,5 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-// import { Code } from "astro:components";
 
 const code = `import { generateFingerprint } from './sdk.js';
 
@@ -650,8 +649,7 @@ console.log(result.deviceId);
                             </button>
                         </div>
                         <pre
-                            class="px-6 pb-6 overflow-x-auto text-sm font-mono leading-relaxed text-slate-300">
-                            <code class="language-js" id="code-snippet" code={code} lang="js" style={"background-color: transparent"} /></pre>
+                            class="p-6 overflow-x-auto text-sm font-mono leading-relaxed text-emerald-100/90 whitespace-pre"><code id="code-snippet">{code}</code></pre>
                     </div>
                 </section>
 

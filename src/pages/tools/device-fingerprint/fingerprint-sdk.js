@@ -347,6 +347,17 @@ export async function generateFingerprint(options = {}) {
         ...options
     };
 
+    // Environment Guard: Ensure it only runs in browser
+    if (typeof window === 'undefined') {
+        return {
+            deviceId: 'ERROR_SSR',
+            entropyScore: 0,
+            generationTimeMs: 0,
+            components: {},
+            details: {}
+        };
+    }
+
     const components = {};
     const detailedInfo = {};
     const startTime = performance.now();
