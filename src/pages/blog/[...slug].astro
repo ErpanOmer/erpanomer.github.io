@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection, getEntry } from "astro:content";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import Giscus from "@/components/Giscus.astro";
 import { getPost, getRecentPosts, getPopularPosts, syncPost } from "@/lib/db";
 
 import BlogStats from "@/components/BlogStats.astro";
@@ -214,8 +215,11 @@ const jsonLd = {
             >
                 <Content />
             </div>
+
+            <Giscus />
+
             <section
-            class="my-8 md:mt-12 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
+            class="mt-10 md:mt-12 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
         >
             <div
                 class="bg-white dark:bg-gray-900 rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
@@ -292,10 +296,10 @@ const jsonLd = {
             >
                 <AuthorCard author={author} />
                 <TableOfContents headings={headings} />
-                <PostSidebarList title="Recent Posts" posts={recentPosts} />
+                <PostSidebarList title="最新博客" posts={recentPosts} />
                 <div class="mt-12 pb-8">
                     <PostSidebarList
-                        title="Popular Posts"
+                        title="热门博客"
                         posts={popularPosts}
                     />
                 </div>
