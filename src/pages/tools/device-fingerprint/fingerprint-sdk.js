@@ -125,19 +125,26 @@ function getCanvasSignal() {
         ctx.arc(180, 40, 15, 0, Math.PI * 2, true);
         ctx.fill('evenodd');
 
-        // Get pixel data for hashing (more efficient than full dataURL)
+        // Get pixel data for hashing
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const pixels = imageData.data;
 
-        // Sample pixels for hash (every 10th pixel to balance speed vs uniqueness)
-        let hash = '';
-        for (let i = 0; i < pixels.length; i += 40) {
-            hash += pixels[i].toString(16).padStart(2, '0');
+        // Sample pixels across the entire canvas to capture all drawing areas
+        // Each pixel is 4 bytes [R,G,B,A]. We skip by a prime-ish number to get diverse samples.
+        let sampleData = '';
+        const step = Math.max(4, Math.floor(pixels.length / 500)); // Sample ~500 points
+
+        for (let i = 0; i < pixels.length; i += step) {
+            // Include R, G, B channels as chars (A is often 255/0)
+            sampleData += String.fromCharCode(pixels[i], pixels[i + 1], pixels[i + 2]);
         }
+
+        // Generate a proper 64-bit hash from the sampled data
+        const fingerHash = getHash64(sampleData);
 
         return {
             error: null,
-            hash: hash.substring(0, 64), // Limit hash length
+            hash: fingerHash,
             dataUrl: canvas.toDataURL() // Keep for display
         };
     } catch (e) {

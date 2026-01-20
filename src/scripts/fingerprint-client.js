@@ -27,6 +27,8 @@ export function initFingerprint() {
     // WebGL elements
     const webglVendor = document.getElementById("webgl-vendor");
     const webglRenderer = document.getElementById("webgl-renderer");
+    const webglVersion = document.getElementById("webgl-version");
+    const webglTexture = document.getElementById("webgl-texture");
 
     // Font elements
     const fontCountValue = document.getElementById("font-count-value");
@@ -108,6 +110,14 @@ export function initFingerprint() {
                 if (webglRenderer) {
                     const v = webglRenderer.querySelector("span:last-child");
                     if (v) v.textContent = webglData[5] || webglData[1] || "未知";
+                }
+                if (webglVersion) {
+                    const v = webglVersion.querySelector("span:last-child");
+                    if (v) v.textContent = webglData[2] || "未知";
+                }
+                if (webglTexture) {
+                    const v = webglTexture.querySelector("span:last-child");
+                    if (v) v.textContent = webglData[6] || "未知";
                 }
             }
 
