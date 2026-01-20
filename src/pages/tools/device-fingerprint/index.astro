@@ -1,0 +1,1060 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Code } from "astro:components";
+
+const code = `import { generateFingerprint } from './sdk.js';
+
+// 生成指纹
+const result = await generateFingerprint({
+  canvas: true,   // 启用 Canvas 指纹
+  audio: true,    // 启用 Audio 指纹
+  webgl: true,    // 启用 WebGL 指纹 (新增)
+  fonts: true,    // 启用字体检测 (新增)
+  hardware: true, // 启用硬件特征
+});
+
+console.log(result.deviceId); 
+// 输出: "84e1b..." (16位稳定唯一 ID)`;
+---
+
+<BaseLayout
+    title="设备指纹生成器 (Device Fingerprint) | ErpanOmer"
+    description="基于浏览器特征生成的纯前端设备唯一标识 ID。无 Cookie、无缓存、无权限请求，隐私安全。"
+>
+    <div
+        class="relative min-h-screen overflow-hidden bg-slate-900 text-slate-100 font-sans selection:bg-cyan-500/30"
+    >
+        <!-- Background Effects -->
+        <div
+            class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-cyan-900/20 to-transparent pointer-events-none"
+        >
+        </div>
+        <div
+            class="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none animate-pulse"
+        >
+        </div>
+        <div
+            class="absolute bottom-0 left-20 w-72 h-72 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"
+        >
+        </div>
+
+        <div class="relative max-w-5xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <!-- Header -->
+            <div class="text-center mb-16">
+                <h1
+                    class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400"
+                >
+                    设备指纹生成器
+                </h1>
+                <p class="max-w-2xl mx-auto text-lg text-slate-400">
+                    仅利用浏览器特征生成稳定、唯一的设备 ID。
+                    <br />
+                    <span class="text-cyan-400 font-medium"
+                        >无 Cookie · 无 LocalStorage · 零权限获取</span
+                    >
+                </p>
+            </div>
+
+            <!-- Main Action Card -->
+            <div
+                class="bg-slate-800/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 px-4 py-8 md:p-12 shadow-2xl mb-12 ring-1 ring-white/10"
+            >
+                <div
+                    class="flex flex-col items-center justify-center space-y-8"
+                >
+                    <!-- ID Display -->
+                    <div
+                        id="result-container"
+                        class="w-full max-w-3xl text-center hidden opacity-0 transition-all duration-700 transform translate-y-4"
+                    >
+                        <div
+                            class="uppercase tracking-widest text-xs font-semibold text-slate-500 mb-2"
+                        >
+                            Unique Device Identifier
+                        </div>
+                        <div class="relative group">
+                            <div
+                                class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-500"
+                            >
+                            </div>
+                            <div
+                                id="device-id-display"
+                                class="relative bg-slate-900 rounded-xl px-4 py-6 md:py-8 break-all font-mono text-xl md:text-4xl text-cyan-50 tracking-wider shadow-inner border border-slate-700"
+                            >
+                                <span
+                                    class="animate-pulse text-slate-500 text-sm"
+                                    >正在计算设备指纹...</span
+                                >
+                            </div>
+                            <button
+                                id="copy-btn"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-cyan-400 transition-colors"
+                                title="复制 ID"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><rect
+                                        x="9"
+                                        y="9"
+                                        width="13"
+                                        height="13"
+                                        rx="2"
+                                        ry="2"></rect><path
+                                        d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                                    ></path></svg
+                                >
+                            </button>
+                        </div>
+
+                        <div
+                            class="flex justify-center gap-6 mt-6 text-sm text-slate-400 font-mono"
+                        >
+                            <div title="熵值越高，唯一性越强">
+                                <span>熵值估计:</span>
+                                <span
+                                    id="entropy-score"
+                                    class="text-emerald-400 font-bold">--</span
+                                > bits
+                            </div>
+                            <div>
+                                <span>生成耗时:</span>
+                                <span
+                                    id="gen-time"
+                                    class="text-indigo-400 font-bold">--</span
+                                > ms
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generate Button (Optional Manual Trigger) -->
+                    <button
+                        id="generate-btn"
+                        class="text-sm text-slate-400 hover:text-cyan-400 transition-colors underline decoration-dotted underline-offset-4 hidden"
+                    >
+                        重新生成
+                    </button>
+                </div>
+
+                <!-- Components Breakdown -->
+                <div
+                    id="breakdown-grid"
+                    class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12 opacity-0 transition-all duration-700 delay-200 md:items-stretch"
+                >
+                    <!-- Canvas Module -->
+                    <div
+                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-cyan-500/30 transition-colors flex flex-col"
+                    >
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="p-2 bg-orange-500/10 rounded-lg text-orange-400"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><rect
+                                        width="18"
+                                        height="18"
+                                        x="3"
+                                        y="3"
+                                        rx="2"
+                                        ry="2"></rect><circle
+                                        cx="8.5"
+                                        cy="8.5"
+                                        r="1.5"></circle><path
+                                        d="m20.4 14.5-2.9-2.9a2.5 2.5 0 0 0-3.5 0l-7 7"
+                                    ></path></svg
+                                >
+                            </div>
+                            <h3 class="font-bold text-slate-200">
+                                Canvas 指纹
+                            </h3>
+                        </div>
+                        <div
+                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                        >
+                            通过在隐藏画布上绘制混合字体、Emoji
+                            和混合模式图形，捕捉不同 GPU 和 渲染引擎的细微差异。
+                        </div>
+                        <div
+                            class="flex-1 bg-white/5 rounded-lg flex items-center justify-center overflow-hidden border border-white/10"
+                        >
+                            <img
+                                id="signal-canvas-img"
+                                src=""
+                                alt="Canvas Fingerprint"
+                                class="max-w-full max-h-full opacity-80"
+                            />
+                        </div>
+                        <div class="mt-2 text-right">
+                            <span
+                                class="text-[10px] text-slate-500 font-mono"
+                                id="signal-canvas-hash"></span>
+                        </div>
+                    </div>
+
+                    <!-- Audio Module -->
+                    <div
+                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-indigo-500/30 transition-colors flex flex-col"
+                    >
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><path d="M2 10v3"></path><path d="M6 6v11"
+                                    ></path><path d="M10 3v18"></path><path
+                                        d="M14 8v7"></path><path d="M18 5v13"
+                                    ></path><path d="M22 10v3"></path></svg
+                                >
+                            </div>
+                            <h3 class="font-bold text-slate-200">Audio 指纹</h3>
+                        </div>
+                        <div
+                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                        >
+                            利用 OfflineAudioContext
+                            渲染无声振荡波形并进行压缩，捕捉音频硬件及驱动的特征差异。
+                        </div>
+                        <div
+                            class="min-h-24 flex-1 flex items-end justify-center gap-1 pb-4 px-4 bg-white/5 rounded-lg border border-white/10"
+                        >
+                            <div
+                                class="flex-1 bg-indigo-500/50 animate-pulse"
+                                style="height: 20%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/60 animate-pulse delay-75"
+                                style="height: 35%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/70 animate-pulse delay-100"
+                                style="height: 45%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/80 animate-pulse delay-150"
+                                style="height: 60%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/90 animate-pulse delay-200"
+                                style="height: 75%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/70 animate-pulse delay-75"
+                                style="height: 55%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/60 animate-pulse delay-100"
+                                style="height: 40%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/50 animate-pulse delay-150"
+                                style="height: 25%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/60 animate-pulse delay-200"
+                                style="height: 30%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/80 animate-pulse"
+                                style="height: 65%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/90 animate-pulse delay-75"
+                                style="height: 70%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/70 animate-pulse delay-100"
+                                style="height: 50%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/60 animate-pulse delay-150"
+                                style="height: 35%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/50 animate-pulse delay-200"
+                                style="height: 18%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/60 animate-pulse"
+                                style="height: 28%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/70 animate-pulse delay-75"
+                                style="height: 42%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/80 animate-pulse delay-100"
+                                style="height: 58%"
+                            >
+                            </div>
+                            <div
+                                class="flex-1 bg-indigo-500/50 animate-pulse delay-150"
+                                style="height: 15%"
+                            >
+                            </div>
+                        </div>
+                        <div class="mt-2 text-right">
+                            <span
+                                class="text-[10px] text-slate-500 font-mono"
+                                id="signal-audio-hash">等待生成...</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Hardware Module -->
+                    <div
+                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-emerald-500/30 transition-colors flex flex-col"
+                    >
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><rect
+                                        x="2"
+                                        y="3"
+                                        width="20"
+                                        height="14"
+                                        rx="2"
+                                        ry="2"></rect><line
+                                        x1="8"
+                                        y1="21"
+                                        x2="16"
+                                        y2="21"></line><line
+                                        x1="12"
+                                        y1="17"
+                                        x2="12"
+                                        y2="21"></line></svg
+                                >
+                            </div>
+                            <h3 class="font-bold text-slate-200">硬件特征</h3>
+                        </div>
+                        <div
+                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                        >
+                            综合 CPU
+                            核心并发数、设备内存、系统语言、时区等相对稳定的硬件特征。
+                        </div>
+                        <div
+                            class="flex flex-col px-3 py-2 bg-white/5 rounded-lg border border-white/10 text-xs font-mono text-slate-300 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent"
+                        >
+                            <div
+                                id="hw-cores"
+                                class="flex justify-between gap-2"
+                            >
+                                <span class="text-slate-500">核心数:</span>
+                                <span class="text-emerald-400">--</span>
+                            </div>
+                            <div id="hw-mem" class="flex justify-between gap-2">
+                                <span class="text-slate-500">内存:</span>
+                                <span class="text-emerald-400">--</span>
+                            </div>
+                            <div
+                                id="hw-platform"
+                                class="flex justify-between gap-2"
+                            >
+                                <span class="text-slate-500">平台:</span>
+                                <span class="text-emerald-400">--</span>
+                            </div>
+                            <div
+                                id="hw-language"
+                                class="flex justify-between gap-2"
+                            >
+                                <span class="text-slate-500">语言:</span>
+                                <span class="text-emerald-400">--</span>
+                            </div>
+                            <div
+                                id="hw-colordepth"
+                                class="flex justify-between gap-2"
+                            >
+                                <span class="text-slate-500">色深:</span>
+                                <span class="text-emerald-400">--</span>
+                            </div>
+                            <div
+                                id="hw-pixeldepth"
+                                class="flex justify-between gap-2"
+                            >
+                                <span class="text-slate-500">像素深度:</span>
+                                <span class="text-emerald-400">--</span>
+                            </div>
+                            <div
+                                id="hw-timezone"
+                                class="flex justify-between gap-2"
+                            >
+                                <span class="text-slate-500">时区偏移:</span>
+                                <span class="text-emerald-400">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WebGL Module -->
+                    <div
+                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-purple-500/30 transition-colors flex flex-col"
+                    >
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="p-2 bg-purple-500/10 rounded-lg text-purple-400"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><path d="M12 2L2 7l10 5 10-5-10-5z"
+                                    ></path><path d="M2 17l10 5 10-5"
+                                    ></path><path d="M2 12l10 5 10-5"
+                                    ></path></svg
+                                >
+                            </div>
+                            <h3 class="font-bold text-slate-200">WebGL 指纹</h3>
+                        </div>
+                        <div
+                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                        >
+                            获取 GPU 供应商、渲染器型号及 WebGL
+                            参数，捕捉显卡硬件特征。
+                        </div>
+                        <div
+                            class="flex-1 flex flex-col px-3 py-2 bg-white/5 rounded-lg border border-white/10 text-xs font-mono text-slate-300 space-y-1 whitespace-normal"
+                        >
+                            <div
+                                id="webgl-vendor"
+                                class="truncate whitespace-normal"
+                            >
+                                <span class="text-slate-500">供应商:</span>
+                                <span class="text-purple-400 whitespace-normal"
+                                    >--</span
+                                >
+                            </div>
+                            <div
+                                id="webgl-renderer"
+                                class="truncate whitespace-normal"
+                            >
+                                <span class="text-slate-500">渲染器:</span>
+                                <span class="text-purple-400">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Font Detection Module -->
+                    <div
+                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-pink-500/30 transition-colors flex flex-col"
+                    >
+                        <div class="flex items-center gap-3 mb-4">
+                            <div
+                                class="p-2 bg-pink-500/10 rounded-lg text-pink-400"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><polyline points="4 7 4 4 20 4 20 7"
+                                    ></polyline><line
+                                        x1="9"
+                                        y1="20"
+                                        x2="15"
+                                        y2="20"></line><line
+                                        x1="12"
+                                        y1="4"
+                                        x2="12"
+                                        y2="20"></line></svg
+                                >
+                            </div>
+                            <h3 class="font-bold text-slate-200">字体检测</h3>
+                        </div>
+                        <div
+                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                        >
+                            检测系统已安装的字体，不同设备字体列表差异明显。
+                        </div>
+                        <div
+                            class="flex-1 flex flex-col px-3 py-2 bg-white/5 rounded-lg border border-white/10 text-xs font-mono text-slate-300 space-y-1 overflow-y-auto"
+                        >
+                            <div id="font-count">
+                                <span class="text-slate-500">检测到:</span>
+                                <span
+                                    class="text-pink-400"
+                                    id="font-count-value">--</span
+                                >
+                                <span class="text-slate-500">种字体</span>
+                            </div>
+                            <div
+                                id="font-list"
+                                class="text-[10px] text-slate-500 mt-1"
+                            >
+                                等待检测...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentation Content - Vertical Layout -->
+            <div class="max-w-4xl mx-auto mt-16 space-y-16 text-slate-400">
+                <!-- Section 1: Core Logic -->
+                <section class="border-l-4 border-cyan-500 pl-6 space-y-4">
+                    <h3 class="text-2xl font-bold text-white mb-4">
+                        核心原理 (How it works)
+                    </h3>
+                    <p class="leading-relaxed text-slate-300">
+                        现代浏览器为了优化性能，会利用底层硬件（GPU、声卡）加速渲染和计算。由于硬件厂商、驱动版本、操作系统抗锯齿策略的不同，哪怕是同样的文字和图形，在不同设备上渲染出的二进制数据也会存在肉眼极难察觉的微小差异。
+                    </p>
+                    <p class="leading-relaxed text-slate-300">
+                        <strong>Device Fingerprint</strong> 通过组合多种浏览器特征，生成一个能够尽量唯一标识该设备的哈希字符串。本
+                        SDK 采用了 <strong>5 种信号源</strong>：
+                    </p>
+                    <ul class="space-y-2 ml-6 text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-400 mt-1">🎨</span>
+                            <div>
+                                <strong class="text-orange-400"
+                                    >Canvas 指纹</strong
+                                > - 不同 GPU 和渲染引擎绘制图形时的细微差异
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-400 mt-1">🔊</span>
+                            <div>
+                                <strong class="text-indigo-400"
+                                    >Audio 指纹</strong
+                                > - 音频堆栈处理波形的特征差异
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-400 mt-1">💻</span>
+                            <div>
+                                <strong class="text-emerald-400"
+                                    >硬件特征</strong
+                                > - CPU 核心数、内存、平台、语言、时区等
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-purple-400 mt-1">🎮</span>
+                            <div>
+                                <strong class="text-purple-400"
+                                    >WebGL 指纹</strong
+                                > - GPU 供应商、渲染器型号及 WebGL 参数
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-pink-400 mt-1">📝</span>
+                            <div>
+                                <strong class="text-pink-400">字体检测</strong> -
+                                系统已安装字体列表（20 种常见字体）
+                            </div>
+                        </li>
+                    </ul>
+                    <div
+                        class="bg-cyan-900/20 border border-cyan-500/30 rounded-lg p-4 mt-4"
+                    >
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-cyan-400 text-xl">🔐</span>
+                            <strong class="text-cyan-300">熵值估计</strong>
+                        </div>
+                        <p class="text-sm text-slate-300">
+                            5 种信号源组合可提供约 <strong class="text-cyan-400"
+                                >38 bits</strong
+                            > 的熵值，理论上可以区分约 <strong
+                                class="text-cyan-400">2740 亿</strong
+                            >台不同设备。
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Section 2: Usage Code -->
+                <section class="border-l-4 border-emerald-500 pl-6 space-y-4">
+                    <h3 class="text-2xl font-bold text-white mb-4">
+                        使用方法 (Usage)
+                    </h3>
+                    <p class="text-sm mb-4 text-slate-400">
+                        本 SDK 已开源，您可以直接在项目中引入使用。
+                        <a
+                            href="https://github.com/ErpanOmer/erpanomer.github.io/tree/master/src/pages/tools/device-fingerprint/fingerprint-sdk.js"
+                            target="_blank"
+                            class="text-emerald-400 hover:underline"
+                            >查看 GitHub 源码仓库</a
+                        >
+                    </p>
+
+                    <div
+                        class="relative group bg-slate-900 rounded-xl border border-slate-700/50 shadow-inner overflow-hidden"
+                    >
+                        <div
+                            class="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <button
+                                id="copy-code-btn"
+                                class="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs rounded hover:bg-slate-700 border border-slate-600 transition-colors"
+                            >
+                                复制代码
+                            </button>
+                        </div>
+                        <pre
+                            class="px-6 pb-6 overflow-x-auto text-sm font-mono leading-relaxed text-slate-300">
+                            <Code class="language-js" id="code-snippet" code={code} lang="js" style={"background-color: transparent"} /></pre>
+                    </div>
+                </section>
+
+                <!-- Section 3: Privacy & Limits -->
+                <section class="border-l-4 border-yellow-500 pl-6 space-y-4">
+                    <h3 class="text-2xl font-bold text-white mb-4">
+                        隐私与局限 (Privacy & Limits)
+                    </h3>
+                    <ul class="space-y-4 text-slate-300">
+                        <li class="bg-black/20 p-4 rounded-lg">
+                            <div class="font-bold text-cyan-400 mb-1">
+                                ✅ 隐私友好
+                            </div>
+                            <div class="text-sm">
+                                SDK 仅采集设备硬件属性（如
+                                GPU、声卡处理特征）和系统配置，不收集任何
+                                IP、地理位置或具体设备账户等敏感隐私信息。
+                            </div>
+                        </li>
+                        <li class="bg-black/20 p-4 rounded-lg">
+                            <div class="font-bold text-cyan-400 mb-1">
+                                ✅ 稳定持久
+                            </div>
+                            <div class="text-sm">
+                                不依赖 <code>cookie</code> 或 <code
+                                    >localStorage</code
+                                >，清理缓存或使用隐身模式通常不会改变
+                                ID。采集逻辑已针对夏令时等环境波动进行了稳定性优化。
+                            </div>
+                        </li>
+                        <li
+                            class="bg-black/20 p-4 rounded-lg border border-yellow-500/20"
+                        >
+                            <div class="font-bold text-yellow-400 mb-1">
+                                ⚠ 抗指纹浏览器
+                            </div>
+                            <div class="text-sm">
+                                部分隐私浏览器（如 Tor、Brave）或 Safari
+                                的“阻止跨站跟踪”功能会故意为 Canvas/Audio
+                                添加随机噪点。这会导致每次生成的 ID
+                                都不一样。这是正常的隐私保护机制。
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+            <!-- PROMOTION BANNER -->
+            <section
+                class="max-w-4xl mx-auto my-8 md:mt-12 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
+            >
+                <div
+                    class="bg-slate-900 rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
+                >
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="hidden sm:flex w-12 h-12 rounded-full bg-indigo-500/20 items-center justify-center flex-shrink-0"
+                        >
+                            <svg
+                                class="w-6 h-6 text-indigo-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                ><path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.783.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                ></path></svg
+                            >
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">
+                                觉得这个工具好用？
+                            </h3>
+                            <p class="text-sm text-slate-400 mt-0.5">
+                                你的 Star
+                                是对我持续开发的最大鼓励！点击右侧按钮前往
+                                GitHub 支持我。
+                            </p>
+                        </div>
+                    </div>
+                    <a
+                        href="https://github.com/ErpanOmer/erpanomer.github.io"
+                        target="_blank"
+                        class="group relative flex items-center gap-2 px-6 py-3 bg-white text-slate-900 rounded-xl font-bold transition-all hover:scale-105 hover:shadow-lg active:scale-95 whitespace-nowrap overflow-hidden"
+                    >
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-hover:opacity-10 transition-opacity"
+                        >
+                        </div>
+                        <svg
+                            class="w-5 h-5 text-yellow-500 fill-current"
+                            viewBox="0 0 24 24"
+                            ><path
+                                d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"
+                            ></path></svg
+                        >
+                        <span>Give me a Star</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </div>
+</BaseLayout>
+
+<script>
+    import { generateFingerprint } from "./fingerprint-sdk.js";
+
+    // UI Elements
+    const btn = document.getElementById("generate-btn");
+    const resultContainer = document.getElementById("result-container");
+    const breakdownGrid = document.getElementById("breakdown-grid");
+
+    const idDisplay = document.getElementById("device-id-display");
+    const entropyDisplay = document.getElementById("entropy-score");
+    const timeDisplay = document.getElementById("gen-time");
+    const copyBtn = document.getElementById("copy-btn");
+    const copyCodeBtn = document.getElementById("copy-code-btn");
+
+    // Component outputs
+    const canvasImg = document.getElementById("signal-canvas-img");
+    const canvasHash = document.getElementById("signal-canvas-hash");
+    const audioHash = document.getElementById("signal-audio-hash");
+    const hwCores = document.getElementById("hw-cores");
+    const hwMem = document.getElementById("hw-mem");
+    const hwPlatform = document.getElementById("hw-platform");
+    const hwLanguage = document.getElementById("hw-language");
+    const hwColorDepth = document.getElementById("hw-colordepth");
+    const hwPixelDepth = document.getElementById("hw-pixeldepth");
+    const hwTimezone = document.getElementById("hw-timezone");
+
+    // WebGL elements
+    const webglVendor = document.getElementById("webgl-vendor");
+    const webglRenderer = document.getElementById("webgl-renderer");
+
+    // Font elements
+    const fontCountValue = document.getElementById("font-count-value");
+    const fontList = document.getElementById("font-list");
+
+    // Core Function
+    async function runGeneration() {
+        try {
+            // Manual trigger UI state
+            if (btn) btn.textContent = "生成中...";
+
+            // Battery removed as per requirements (Phase 3)
+            const result = await generateFingerprint();
+
+            console.log("Fingerprint Result:", result);
+
+            // 1. Update Main ID (Directly from SDK, no prefix)
+            if (idDisplay) {
+                idDisplay.innerHTML = `<span class="text-cyan-50">${result.deviceId}</span>`;
+            }
+
+            if (entropyDisplay)
+                entropyDisplay.textContent = result.entropyScore;
+            if (timeDisplay) timeDisplay.textContent = result.generationTimeMs;
+
+            // 2. Update Canvas - Handle new structure
+            if (result.details && result.details.canvasDataUrl) {
+                if (canvasImg) canvasImg.src = result.details.canvasDataUrl;
+                if (canvasHash) canvasHash.textContent = "数据已捕获";
+            } else if (result.details && result.details.canvasError) {
+                if (canvasHash) canvasHash.textContent = "被拦截/错误";
+            } else if (
+                result.components.canvas &&
+                !String(result.components.canvas).startsWith("ERROR_")
+            ) {
+                if (canvasHash) canvasHash.textContent = "散列已计算";
+            } else {
+                if (canvasHash) canvasHash.textContent = "被拦截/错误";
+            }
+
+            // 3. Update Audio
+            if (audioHash)
+                audioHash.textContent = `样本哈希: ${result.components.audio}`;
+
+            // 4. Update Hardware
+            // Use structured details provided by new SDK
+            if (result.details && result.details.hardware) {
+                const h = result.details.hardware;
+                if (hwCores) {
+                    const coresValue = hwCores.querySelector("span:last-child");
+                    if (coresValue)
+                        coresValue.textContent = String(h.concurrency);
+                }
+                if (hwMem) {
+                    const memValue = hwMem.querySelector("span:last-child");
+                    if (memValue)
+                        memValue.textContent =
+                            h.memory === "unknown" ? "未知" : `${h.memory} GB`;
+                }
+                if (hwPlatform) {
+                    const platformValue =
+                        hwPlatform.querySelector("span:last-child");
+                    if (platformValue)
+                        platformValue.textContent = String(h.platform);
+                }
+                if (hwLanguage) {
+                    const langValue =
+                        hwLanguage.querySelector("span:last-child");
+                    if (langValue) langValue.textContent = String(h.language);
+                }
+                if (hwColorDepth) {
+                    const colorValue =
+                        hwColorDepth.querySelector("span:last-child");
+                    if (colorValue)
+                        colorValue.textContent = `${h.colorDepth} bit`;
+                }
+                if (hwPixelDepth) {
+                    const pixelValue =
+                        hwPixelDepth.querySelector("span:last-child");
+                    if (pixelValue)
+                        pixelValue.textContent = `${h.pixelDepth} bit`;
+                }
+                if (hwTimezone) {
+                    const tzValue = hwTimezone.querySelector("span:last-child");
+                    if (tzValue)
+                        tzValue.textContent = `UTC${h.timezoneOffset > 0 ? "-" : "+"}${String(Math.abs(h.timezoneOffset / 60))}`;
+                }
+            } else if (result.components.hardware) {
+                // Fallback for older SDK version or error
+                const parts = String(result.components.hardware).split("|");
+                if (hwCores) {
+                    const coresValue = hwCores.querySelector("span:last-child");
+                    if (coresValue) coresValue.textContent = parts[0];
+                }
+                if (hwMem) {
+                    const memValue = hwMem.querySelector("span:last-child");
+                    if (memValue)
+                        memValue.textContent =
+                            parts[1] === "unknown" ? "未知" : `${parts[1]} GB`;
+                }
+                if (hwPlatform) {
+                    const platformValue =
+                        hwPlatform.querySelector("span:last-child");
+                    if (platformValue)
+                        platformValue.textContent = parts[2] || "未知";
+                }
+                if (hwLanguage) {
+                    const langValue =
+                        hwLanguage.querySelector("span:last-child");
+                    if (langValue) langValue.textContent = parts[3] || "未知";
+                }
+                if (hwColorDepth) {
+                    const colorValue =
+                        hwColorDepth.querySelector("span:last-child");
+                    if (colorValue) colorValue.textContent = `${parts[4]} bit`;
+                }
+                if (hwPixelDepth) {
+                    const pixelValue =
+                        hwPixelDepth.querySelector("span:last-child");
+                    if (pixelValue) pixelValue.textContent = `${parts[5]} bit`;
+                }
+                if (hwTimezone) {
+                    const tzValue = hwTimezone.querySelector("span:last-child");
+                    if (tzValue && parts[6]) {
+                        const offset = parseInt(parts[6]);
+                        tzValue.textContent = `UTC${offset > 0 ? "-" : "+"}${Math.abs(offset / 60)}`;
+                    }
+                }
+            }
+
+            // 5. Update WebGL
+            if (result.details && result.details.webgl) {
+                const webglData = result.details.webgl.split("|");
+                if (webglVendor) {
+                    const vendorText =
+                        webglVendor.querySelector("span:last-child");
+                    if (vendorText)
+                        vendorText.textContent =
+                            webglData[4] || webglData[0] || "未知";
+                }
+                if (webglRenderer) {
+                    const rendererText =
+                        webglRenderer.querySelector("span:last-child");
+                    if (rendererText)
+                        rendererText.textContent =
+                            webglData[5] || webglData[1] || "未知";
+                }
+            } else if (
+                result.components.webgl &&
+                !String(result.components.webgl).startsWith("ERROR_")
+            ) {
+                const webglData = result.components.webgl.split("|");
+                if (webglVendor) {
+                    const vendorText =
+                        webglVendor.querySelector("span:last-child");
+                    if (vendorText)
+                        vendorText.textContent =
+                            webglData[4] || webglData[0] || "未知";
+                }
+                if (webglRenderer) {
+                    const rendererText =
+                        webglRenderer.querySelector("span:last-child");
+                    if (rendererText)
+                        rendererText.textContent =
+                            webglData[5] || webglData[1] || "未知";
+                }
+            }
+
+            // 6. Update Fonts
+            if (
+                result.details &&
+                result.details.fonts &&
+                result.details.fonts.length > 0
+            ) {
+                if (fontCountValue)
+                    fontCountValue.textContent = result.details.fonts.length;
+                if (fontList)
+                    fontList.textContent = result.details.fonts.join(", ");
+            } else if (
+                result.components.fonts &&
+                !String(result.components.fonts).startsWith("ERROR_")
+            ) {
+                const fonts = result.components.fonts
+                    .split("|")
+                    .filter((f) => f && f !== "none");
+                if (fontCountValue) fontCountValue.textContent = fonts.length;
+                if (fontList)
+                    fontList.textContent =
+                        fonts.length > 0 ? fonts.join(", ") : "无检测到字体";
+            }
+
+            // 7. Reveal UI
+            if (resultContainer) {
+                resultContainer.classList.remove("hidden");
+                resultContainer.classList.remove("translate-y-4");
+                // Fade in effect
+                setTimeout(() => {
+                    resultContainer.style.opacity = "1";
+                }, 50);
+            }
+            if (breakdownGrid) {
+                breakdownGrid.classList.remove("hidden");
+                setTimeout(() => {
+                    breakdownGrid.style.opacity = "1";
+                }, 50);
+            }
+
+            // Reveal manual trigger button
+            if (btn) {
+                btn.textContent = "重新生成";
+                btn.classList.remove("hidden");
+            }
+        } catch (e) {
+            console.error(e);
+            if (idDisplay)
+                idDisplay.innerHTML =
+                    "<span class='text-red-400'>生成失败</span>";
+        }
+    }
+
+    // Auto-run on mount
+    // Astro View Transitions compatibility
+    document.addEventListener("astro:page-load", runGeneration);
+    // Fallback
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", runGeneration);
+    } else {
+        runGeneration(); // Run immediately if ready
+    }
+
+    // Manual trigger
+    if (btn) {
+        btn.addEventListener("click", runGeneration);
+    }
+
+    // Copy ID
+    if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+            const text = idDisplay.innerText;
+            if (text && !text.includes("...")) {
+                navigator.clipboard.writeText(text);
+                const original = copyBtn.innerHTML;
+                copyBtn.innerHTML =
+                    '<span class="text-emerald-400 font-bold text-xs" style="position: absolute; left: 50%; top: 50%; transform: translate(-60%, -50%); width: 100px;">已复制</span>';
+                setTimeout(() => (copyBtn.innerHTML = original), 2000);
+            }
+        });
+    }
+
+    // Copy Code
+    if (copyCodeBtn) {
+        copyCodeBtn.addEventListener("click", () => {
+            const code = document.getElementById("code-snippet")?.innerText;
+            if (code) {
+                navigator.clipboard.writeText(code);
+                const original = copyCodeBtn.innerText;
+                copyCodeBtn.innerText = "已复制!";
+                copyCodeBtn.classList.add(
+                    "text-emerald-400",
+                    "border-emerald-500/50",
+                );
+                setTimeout(() => {
+                    copyCodeBtn.innerText = original;
+                    copyCodeBtn.classList.remove(
+                        "text-emerald-400",
+                        "border-emerald-500/50",
+                    );
+                }, 2000);
+            }
+        });
+    }
+</script>

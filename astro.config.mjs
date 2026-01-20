@@ -48,5 +48,7 @@ export default defineConfig({
   },
   markdown: {
     remarkPlugins: [remarkModifiedTime, remarkReadingTime],
+    shikiConfig: {
+    }
   },
 })
