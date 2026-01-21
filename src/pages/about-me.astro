@@ -1,0 +1,262 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { CldImage } from "astro-cloudinary";
+import Giscus from "@/components/Giscus.astro";
+
+const socials = [
+    {
+        name: "GitHub",
+        url: "https://github.com/ErpanOmer",
+        icon: "M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z",
+        viewBox: "0 2 24 24",
+        color: "hover:text-white",
+    },
+    {
+        name: "掘金",
+        url: "https://juejin.cn/user/3878732754331096",
+        icon: "M17.5875 6.77268L21.8232 3.40505L17.5875 0.00748237L17.5837 0L13.3555 3.39757L17.5837 6.76894L17.5875 6.77268ZM17.5863 17.3955H17.59L28.5161 8.77432L25.5526 6.39453L17.59 12.6808H17.5863L17.5825 12.6845L9.61993 6.40201L6.66016 8.78181L17.5825 17.3992L17.5863 17.3955ZM17.5828 23.2891L17.5865 23.2854L32.2133 11.7456L35.1768 14.1254L28.5238 19.3752L17.5865 28L0.284376 14.3574L0 14.1291L2.95977 11.7531L17.5828 23.2891Z",
+        viewBox: "0 0 36 28",
+        color: "hover:text-blue-500",
+    },
+    {
+        name: "邮箱",
+        url: "mailto:erpanomer@gmail.com",
+        icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+        viewBox: "0 0 24 24",
+        color: "hover:text-emerald-400",
+    },
+];
+
+const identity = {
+    name: "ErpanOmer",
+    title: "Expert Web Frontend Engineer",
+    summary: `深耕 Web 领域十余载，在技术深度与广度上持续探索。作为资深前端专家，我不仅在 React/Vue 架构设计上有深厚造诣，更在 Node.js 服务端、<a href="https://www.electronjs.org/" target="_blank" rel="noopener noreferrer">Electron 桌面端开发</a> 以及 Shopify 独立站生态中积累了丰富的实战经验。我是 <a href="https://juejin.cn/user/3878732754331096" target="_blank" rel="noopener noreferrer">掘金平台的优秀技术博主</a>，致力于分享前沿观点与深度技术解析。`,
+    keywords: [
+        "Frontend Expert",
+        "Full-Stack Node.js",
+        "Electron Specialist",
+        "Shopify Architect",
+        "Juejin Author",
+    ],
+    stats: [
+        { label: "全网影响力", value: "100w+", desc: "文章总阅读量" },
+        { label: "掘金作者", value: "Lv. 6", desc: "优质技术内容分享" },
+        { label: "工程经验", value: "10+", desc: "年 Web 开发沉淀" },
+    ],
+};
+---
+
+<BaseLayout title="关于我">
+    <div class="max-w-4xl mx-auto px-6 py-16 sm:py-24">
+        <!-- Hero Section -->
+        <div class="flex flex-col md:flex-row md:items-start items-center gap-10 mb-12 md:mb-24">
+            <div class="relative group w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0">
+                <div
+                    class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500"
+                >
+                </div>
+                <div
+                    class="relative w-full h-full rounded-full overflow-hidden border-2 border-gh-border group-hover:border-indigo-500 transition-colors bg-gh-surface"
+                >
+                    <CldImage
+                        src="me_kknemi"
+                        width={200}
+                        height={200}
+                        class="w-full h-full object-cover"
+                        alt={identity.name}
+                    />
+                </div>
+            </div>
+
+            <div class="text-center md:text-left flex-1">
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">
+                    {identity.name}
+                </h1>
+                <p class="text-lg text-indigo-400 font-medium mb-4">
+                    {identity.title}
+                </p>
+                <div
+                    class="flex flex-wrap justify-center md:justify-start gap-2 mb-6"
+                >
+                    {
+                        identity.keywords.map((word) => (
+                            <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gh-muted">
+                                {word}
+                            </span>
+                        ))
+                    }
+                </div>
+
+                <!-- Card-based Stats Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gh-border/60 pt-10">
+                    {identity.stats.map((stat) => (
+                        <div class="group cursor-default relative overflow-hidden rounded-2xl bg-white/[0.02] border border-white/5 p-6 hover:border-indigo-500/50 hover:bg-white/[0.04] transition-all duration-500 shadow-sm hover:shadow-indigo-500/10">
+                            <!-- Background Glow -->
+                            <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors"></div>
+                            
+                            <div class="relative">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-bold text-gh-muted uppercase tracking-[0.2em]">
+                                        {stat.label}
+                                    </span>
+                                    <div class="w-1 h-1 rounded-full bg-indigo-500/30"></div>
+                                </div>
+                                
+                                <div class="text-3xl font-extrabold text-white mb-2 transition-all duration-300">
+                                    {stat.value}
+                                </div>
+                                
+                                <p class="text-xs text-gh-muted/80 leading-relaxed font-medium">
+                                    {stat.desc}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bio Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-y-6 md:gap-12 items-start">
+            <div class="lg:col-span-2 space-y-12">
+                <section class="prose-blog">
+                    <h2 class="mt-0">🚀 核心实力与技术深度</h2>
+                    <p
+                        class="text-base md:text-lg leading-relaxed"
+                        set:html={identity.summary}
+                    />
+
+                    <h3>🏗️ 架构与生态</h3>
+                    <p class="text-base leading-relaxed">
+                        在十余年的职业生涯中，我见证并深度参与了前端生态的变革。目前我的技术核心聚焦于：
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>UI 架构设计</strong>：精通 <strong
+                                >React</strong
+                            > 与 <strong>Vue</strong> 及其全家桶生态，擅长构建复杂的大型单页应用（SPA）与服务端渲染（SSR）方案。
+                        </li>
+                        <li>
+                            <strong>跨平台与服务端</strong>：深度应用 <strong
+                                >Node.js</strong
+                            > 构建高性能后端服务，并利用 <strong
+                                >Electron</strong
+                            > 开发多款商用级桌面应用。
+                        </li>
+                        <li>
+                            <strong>Shopify 独立站专家</strong
+                            >：国内首批深度定制 Shopify 独立站的工程师，精通
+                            Liquid、Hydrogen、Oxygen 以及全流程自动化部署。
+                        </li>
+                        <li>
+                            <strong>边缘计算</strong>：<strong
+                                >Cloudflare</strong
+                            > 生态的硬核玩家，擅长利用 Workers 与 D1 数据库构建高度敏捷的边缘服务。
+                        </li>
+                    </ul>
+
+                    <h3>✍️ 持续输出与行业影响力</h3>
+                    <p class="text-base leading-relaxed">
+                        作为 <strong
+                            ><a
+                                href="https://juejin.cn/user/3878732754331096"
+                                target="_blank"
+                                rel="noopener noreferrer">掘金Lv.6作者</a
+                            ></strong
+                        >，我始终坚持“凡有所悟，必有所得”的原则。目前的文章全网累计阅读量已突破
+                        <strong>100万+</strong
+                        >。通过输出深度内容，我不仅在回馈社区，也在不断重构自己的知识体系。
+                    </p>
+                </section>
+            </div>
+
+            <!-- Sidebar / Contacts -->
+            <div class="lg:col-span-1 space-y-6 lg:sticky lg:top-24">
+                <div
+                    class="bg-gh-surface rounded-2xl border border-gh-border p-5 shadow-xl shadow-black/20"
+                >
+                    <h3
+                        class="text-[10px] font-bold text-gh-muted uppercase tracking-[0.2em] mb-6 px-1 flex items-center gap-2"
+                    >
+                        <span
+                            class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"
+                        ></span>
+                        联系我 / Connect
+                    </h3>
+                    <div class="space-y-3">
+                        {
+                            socials.map((social) => (
+                                <a
+                                    href={social.url}
+                                    target="_blank"
+                                    class={`flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-gh-border transition-all group ${social.color}`}
+                                >
+                                    <div class="w-8 h-8 flex items-center justify-center rounded-md bg-gh-bg group-hover:scale-110 transition-transform">
+                                        <svg
+                                            class="w-5 h-5 opacity-70 group-hover:opacity-100"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox={social.viewBox}
+                                        >
+                                            {social.name === "掘金" ||
+                                            social.name === "GitHub" ? (
+                                                <path
+                                                    fill="currentColor"
+                                                    fill-rule="evenodd"
+                                                    clip-rule="evenodd"
+                                                    d={social.icon}
+                                                />
+                                            ) : (
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d={social.icon}
+                                                />
+                                            )}
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-medium tracking-wide">
+                                        {social.name}
+                                    </span>
+                                    <svg
+                                        class="w-3.5 h-3.5 ml-auto opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                                        />
+                                    </svg>
+                                </a>
+                            ))
+                        }
+                    </div>
+                </div>
+                <div class="flex items-center flex-col justify-center">
+                    <img
+                        src="https://skillicons.dev/icons?i=html,css,js,jquery,react,remix,astro,vue,nodejs,py,electron,cloudflare,workers,docker,linux,ai&perline=5"
+                        loading="lazy"
+                        class="w-[80vw] md:w-full"
+                        alt="developer skills"
+                    />
+                </div>
+
+                <div
+                    class="p-6 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-2xl border border-indigo-500/10"
+                >
+                    <p
+                        class="text-sm text-gh-muted leading-relaxed italic text-center"
+                    >
+                        "凡是能被自动化的，都应该被自动化。"
+                    </p>
+                </div>
+            </div>
+        </div>
+        <Giscus />
+    </div>
+</BaseLayout>

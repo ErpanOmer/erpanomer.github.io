@@ -7,12 +7,13 @@ const menus = [
         href: "/blog/",
     },
     {
-        name: "项目",
+        name: "我的项目",
         href: "/projects/",
     },
     {
         name: "工具集合",
         href: "/tools/",
+        isNew: true,
     },
 ];
 ---
@@ -51,9 +52,14 @@ const menus = [
                     menus.map((menu) => (
                         <a
                             href={menu.href}
-                            class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all"
+                            class="relative px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all"
                         >
                             {menu.name}
+                            {menu.isNew && (
+                                <span class="absolute -top-1 -right-1 flex h-4 w-8 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white ring-2 ring-gh-bg">
+                                    NEW
+                                </span>
+                            )}
                         </a>
                     ))
                 }
@@ -89,9 +95,14 @@ const menus = [
                         menus.map((menu) => (
                             <a
                                 href={menu.href}
-                                class="block px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-gh-border/50"
+                                class="flex items-center justify-between px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-gh-border/50"
                             >
                                 {menu.name}
+                                {menu.isNew && (
+                                    <span class="px-1.5 py-0.5 rounded-full bg-indigo-500 text-[8px] font-bold text-white">
+                                        NEW
+                                    </span>
+                                )}
                             </a>
                         ))
                     }
