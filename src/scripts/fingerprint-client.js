@@ -105,19 +105,23 @@ export function initFingerprint() {
                 const webglData = result.details.webgl.split("|");
                 if (webglVendor) {
                     const v = webglVendor.querySelector("span:last-child");
-                    if (v) v.textContent = webglData[4] || webglData[0] || "未知";
+                    // Index 0 is standard Vendor (unmasked removed)
+                    if (v) v.textContent = webglData[0] || "未知";
                 }
                 if (webglRenderer) {
                     const v = webglRenderer.querySelector("span:last-child");
-                    if (v) v.textContent = webglData[5] || webglData[1] || "未知";
+                    // Index 4 is now Unmasked Renderer (was 5), Index 1 is standard Renderer
+                    if (v) v.textContent = webglData[4] || webglData[1] || "未知";
                 }
                 if (webglVersion) {
                     const v = webglVersion.querySelector("span:last-child");
+                    // Index 2 is Version
                     if (v) v.textContent = webglData[2] || "未知";
                 }
                 if (webglTexture) {
                     const v = webglTexture.querySelector("span:last-child");
-                    if (v) v.textContent = webglData[6] || "未知";
+                    // Index 5 is now Max Texture Size (was 6)
+                    if (v) v.textContent = webglData[5] || "未知";
                 }
             }
 

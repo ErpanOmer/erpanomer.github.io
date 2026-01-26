@@ -85,20 +85,9 @@ function getCanvasSignal() {
         canvas.width = 240;
         canvas.height = 80; // Increased to accommodate drawing
 
-        // 1. Text with mixed fonts and styles
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = '#f60';
-        ctx.fillRect(100, 1, 62, 20);
-
-        ctx.fillStyle = '#069';
-        ctx.font = '11pt "Times New Roman"'; // Serif font
-        ctx.fillText('Cwm fjordbank glyphs vext quiz', 2, 15);
-
-        ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
-        ctx.font = '18pt Arial'; // Sans-serif
-        ctx.fillText('Cwm fjordbank glyphs vext quiz', 4, 45);
-
-        // 2. Global Composite Operation (blending modes) - Fixed coordinates
+        // 1. Global Composite Operation (blending modes) - Fixed coordinates
+        // We removed Text rendering as it is highly browser-dependent (font smoothing, default fonts)
+        // varying even between Chrome and Edge on the same machine.
         ctx.globalCompositeOperation = 'multiply';
         ctx.fillStyle = 'rgb(255,0,255)';
         ctx.beginPath();
@@ -213,7 +202,7 @@ function getWebGLSignal() {
             renderer: gl.getParameter(gl.RENDERER),
             version: gl.getParameter(gl.VERSION),
             shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
-            unmaskedVendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'unavailable',
+            // unmaskedVendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'unavailable', // REMOVED: Often contains "Google Inc" vs "Microsoft"
             unmaskedRenderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'unavailable',
             maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
             maxVertexAttribs: gl.getParameter(gl.MAX_VERTEX_ATTRIBS),

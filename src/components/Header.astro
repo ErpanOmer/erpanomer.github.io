@@ -47,7 +47,7 @@ const menus = [
 
         <div class="flex items-center gap-0.5 sm:gap-2">
             <!-- Desktop Navigation -->
-            <div class="hidden sm:flex items-center gap-1 select-none">
+            <div class="hidden sm:flex items-center gap-1 select-none mr-4">
                 {
                     menus.map((menu) => (
                         <a
@@ -56,7 +56,7 @@ const menus = [
                         >
                             {menu.name}
                             {menu.isNew && (
-                                <span class="absolute -top-1 -right-1 flex h-4 w-8 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white ring-2 ring-gh-bg">
+                                <span class="absolute -top-[3px] -right-4 flex h-4 w-8 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white ring-2 ring-gh-bg">
                                     NEW
                                 </span>
                             )}
