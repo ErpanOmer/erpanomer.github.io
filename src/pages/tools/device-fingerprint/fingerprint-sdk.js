@@ -92,11 +92,11 @@ function getCanvasSignal() {
 
         ctx.fillStyle = '#069';
         ctx.font = '11pt "Times New Roman"'; // Serif font
-        ctx.fillText('Cwm fjordbank glyphs vext quiz, \ud83d\ude03', 2, 15);
+        ctx.fillText('Cwm fjordbank glyphs vext quiz', 2, 15);
 
         ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
         ctx.font = '18pt Arial'; // Sans-serif
-        ctx.fillText('Cwm fjordbank glyphs vext quiz, \ud83d\ude03', 4, 45);
+        ctx.fillText('Cwm fjordbank glyphs vext quiz', 4, 45);
 
         // 2. Global Composite Operation (blending modes) - Fixed coordinates
         ctx.globalCompositeOperation = 'multiply';
@@ -193,7 +193,7 @@ async function getAudioSignal() {
         }
 
         // Truncate floating point noise
-        return signal.toFixed(4); // Keep 4 decimals for stability
+        return signal.toFixed(1); // Keep 1 decimal for stability (ignore minor floating point diffs)
     } catch (e) {
         return `ERROR_AUDIO: ${e.message}`;
     }
