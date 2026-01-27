@@ -19,7 +19,7 @@ export const projects: Project[] = [
         tags: ["Gemeni 3 Pro", "Astro", "Cloudflare Workers", "Cloudinary", "Markdown", "TailwindCSS", "TypeScript"],
         image: getCldImageUrl({
             src: "8b116889-af12-4694-afa0-08a9a5919a62_fezfxk",
-            width: 600
+            width: 500
         }),
         link: "https://github.com/ErpanOmer/erpanomer.github.io",
         type: "Personal Website",
@@ -31,7 +31,7 @@ export const projects: Project[] = [
         tags: ["Vitepress", "Leetcode", "Top 100", "Top 100", "Sort"],
         image: getCldImageUrl({
             src: "1_0HMd3UBqpu478hk_HbhEaA_zpijaz",
-            width: 600
+            width: 500
         }),
         link: "/projects/leetcode/",
         type: "algorithm",
@@ -43,7 +43,7 @@ export const projects: Project[] = [
         tags: ["微信小游戏", "Flappy Bird", "云开发", "社交功能"],
         image: getCldImageUrl({
             src: "logo_c7dz8c",
-            width: 600
+            width: 500
         }),
         link: "",
         type: "Wechat Mini Game",
@@ -56,7 +56,7 @@ export const projects: Project[] = [
         tags: ["Vitepress", "Markdown", "Cloudflare Workers"],
         image: getCldImageUrl({
             src: "65ef63f6bd30ab838939a4ae_Developer_productivity_tools_2024_qp8clt",
-            width: 600
+            width: 500
         }),
         link: "/projects/learning/",
         type: "Learning Notes",
@@ -68,7 +68,7 @@ export const projects: Project[] = [
         tags: ["Vue3", "Mapbox GL", "Ant Design Vue", "Cloudflare Workers", "TailwindCSS"],
         image: getCldImageUrl({
             src: "screenshot-20260107-174003_rhnvjc",
-            width: 600
+            width: 500
         }),
         link: "https://urtopia-test-ride.pages.dev",
         type: "Map Store",
