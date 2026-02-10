@@ -1,5 +1,4 @@
 ---
-import { CldImage } from "astro-cloudinary";
 const skills = [
     { name: "React", color: "bg-sky-500" },
     { name: "Vue", color: "bg-emerald-500" },
@@ -11,7 +10,7 @@ const skills = [
     { name: "AI / LLM", color: "bg-purple-500" },
     { name: "Markdown", color: "bg-yellow-500" },
     { name: "Vitepress", color: "bg-yellow-500" },
-    { name: "Astro", color: "bg-pink-500" }
+    { name: "Astro", color: "bg-pink-500" },
 ];
 ---
 
@@ -32,11 +31,10 @@ const skills = [
             <div
                 class="relative w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 rounded-full overflow-hidden ring-4 ring-gh-surface shadow-xl"
             >
-                <CldImage
-                    src="8b116889-af12-4694-afa0-08a9a5919a62_fezfxk"
-                    width={300}
-                    height={300}
-                    sizes="300px"
+                <img
+                    src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_300,h_300/f_auto/q_auto/8b116889-af12-4694-afa0-08a9a5919a62_fezfxk"
+                    width="300"
+                    height="300"
                     class="w-full h-full object-cover"
                     alt="ErpanOmer"
                     loading="eager"

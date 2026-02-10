@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { CldImage } from "astro-cloudinary";
+
 import Giscus from "@/components/Giscus.astro";
 
 const socials = [
@@ -58,10 +58,10 @@ const identity = {
                 <div
                     class="relative w-full h-full rounded-full overflow-hidden border-2 border-gh-border group-hover:border-indigo-500 transition-colors bg-gh-surface"
                 >
-                    <CldImage
-                        src="me_kknemi"
-                        width={200}
-                        height={200}
+                    <img
+                        src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_200,h_200/f_auto/q_auto/me_kknemi"
+                        width="200"
+                        height="200"
                         class="w-full h-full object-cover"
                         alt={identity.name}
                     />

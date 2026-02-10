@@ -3,10 +3,8 @@ import { Font } from "astro:assets";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import BackToTop from "@/components/BackToTop.astro";
-import { getCldImageUrl } from "astro-cloudinary/helpers";
 import me from "@/images/me.jpg";
 import "@/app.css";
-import { CldOgImage } from "astro-cloudinary";
 
 const { env } = Astro.locals.runtime || {};
 
@@ -63,13 +61,16 @@ const viewCount = Astro.locals.viewCount || 0;
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0d1117" />
 
-    <CldOgImage
-      src="me_kknemi"
-      width={500}
-      height={500}
-      twitterTitle={fullTitle}
-      alt={fullTitle}
+    <meta
+      property="og:image"
+      content={`https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_500,h_500/f_auto/q_auto/me_kknemi`}
     />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:image"
+      content={`https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_500,h_500/f_auto/q_auto/me_kknemi`}
+    />
+    <meta name="twitter:title" content={fullTitle} />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type} />
@@ -151,11 +152,8 @@ const viewCount = Astro.locals.viewCount || 0;
           "@type": "Person",
           name: "ErpanOmer",
           url: new URL(Astro.url.origin).toString(),
-          image: getCldImageUrl({
-            src: "me_kknemi",
-            width: 500,
-            height: 500,
-          }),
+          image:
+            "https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_500,h_500/f_auto/q_auto/me_kknemi",
           sameAs: [
             "https://github.com/ErpanOmer",
             "https://juejin.cn/user/3878732754331096",
