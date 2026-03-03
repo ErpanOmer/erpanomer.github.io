@@ -53,6 +53,7 @@ const postStats = await getAllPostStats(db);
                                     <img
                                         src={post.data.cover}
                                         alt={post.data.title}
+                                        loading="lazy"
                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                 </div>
