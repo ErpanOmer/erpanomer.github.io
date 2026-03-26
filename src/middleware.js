@@ -1,54 +1,148 @@
-
-
 /**
- * Middleware for View Counting logic
+ * Middleware for site view counting:
+ * - Count only HTML document requests on known content routes.
+ * - Skip counting for non-200 responses.
+ * - Skip counting for obvious scanner user agents.
  */
+const SITE_VIEW_KEY = "site_views";
+const VISITOR_ID_COOKIE = "visitor_id";
+const SITE_VIEW_COOKIE = "has_visited_today";
+
+const VISITOR_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+const SITE_VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+
+const CONTENT_ROUTE_PREFIXES = ["/about-me", "/blog", "/projects", "/tools"];
+const STATIC_ASSET_EXT_RE =
+    /\.(?:avif|bmp|css|gif|ico|jpe?g|js|json|map|mjs|png|svg|txt|webmanifest|webp|woff2?|xml)$/i;
+
+// Keep this list short and high-confidence for maintainability.
+const SUSPICIOUS_UA_KEYWORDS = [
+    "curl/",
+    "wget/",
+    "python-requests",
+    "go-http-client",
+    "sqlmap",
+    "nikto",
+    "nmap",
+    "masscan",
+    "zgrab",
+    "libwww-perl",
+];
+
+function normalizePath(pathname) {
+    if (pathname.length > 1 && pathname.endsWith("/")) {
+        return pathname.slice(0, -1);
+    }
+    return pathname;
+}
+
+function isKnownContentPath(pathname) {
+    const path = normalizePath(pathname);
+    if (path === "/") return true;
+
+    return CONTENT_ROUTE_PREFIXES.some(
+        (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+    );
+}
+
+function isHtmlDocumentRequest(request, pathname) {
+    if (request.method !== "GET") return false;
+    if (pathname.startsWith("/api/")) return false;
+    if (STATIC_ASSET_EXT_RE.test(pathname)) return false;
+
+    const accept = request.headers.get("accept") || "";
+    if (!accept.includes("text/html")) return false;
+
+    const secFetchDest = request.headers.get("sec-fetch-dest");
+    if (secFetchDest && secFetchDest !== "document") return false;
+
+    const secFetchMode = request.headers.get("sec-fetch-mode");
+    if (secFetchMode && secFetchMode !== "navigate") return false;
+
+    return true;
+}
+
+function isSuspiciousUserAgent(userAgent) {
+    if (!userAgent) return false;
+    const ua = userAgent.toLowerCase();
+    return SUSPICIOUS_UA_KEYWORDS.some((keyword) => ua.includes(keyword));
+}
+
+function getOrCreateVisitorId(cookies) {
+    let visitorId = cookies.get(VISITOR_ID_COOKIE)?.value;
+    if (visitorId) return visitorId;
+
+    visitorId = crypto.randomUUID();
+    cookies.set(VISITOR_ID_COOKIE, visitorId, {
+        path: "/",
+        maxAge: VISITOR_ID_COOKIE_MAX_AGE,
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+    });
+
+    return visitorId;
+}
+
 async function viewCounterMiddleware(context, next) {
     const { request, cookies, locals } = context;
-    let viewCount = 0;
     const env = locals.runtime?.env || {};
+    const { pathname } = new URL(request.url);
+    const userAgent = request.headers.get("user-agent") || "";
 
-    // Visitor ID Logic
-    let visitorId = cookies.get("visitor_id")?.value;
+    const isHtmlRequest = isHtmlDocumentRequest(request, pathname);
+    const isKnownContentRequest = isHtmlRequest && isKnownContentPath(pathname);
+    const isStatsApiRequest = pathname.startsWith("/api/stats/");
+    const isSuspiciousUa = isSuspiciousUserAgent(userAgent);
 
-    if (!visitorId) {
-        visitorId = crypto.randomUUID();
-        cookies.set("visitor_id", visitorId, {
-            path: "/",
-            maxAge: 31536000, // 1 year
-            httpOnly: true,
-            secure: true,
-            sameSite: "Lax"
-        });
+    locals.viewCount = 0;
+
+    // visitorId is used by page render and /api/stats interactions.
+    if ((isKnownContentRequest || isStatsApiRequest) && !isSuspiciousUa) {
+        locals.visitorId = getOrCreateVisitorId(cookies);
     }
-    locals.visitorId = visitorId;
 
-    if (env && env.VIEWS) {
+    let currentViewCount = 0;
+    let canWriteSiteView = false;
+
+    if (env?.VIEWS && isKnownContentRequest) {
         try {
-            const hasVisitedCookie = cookies.has("has_visited_today");
-            const currentCountStr = await env.VIEWS.get("site_views");
-            viewCount = currentCountStr ? parseInt(currentCountStr) : 0;
-
-            if (!hasVisitedCookie) {
-                viewCount++;
-                await env.VIEWS.put("site_views", viewCount.toString());
-                cookies.set("has_visited_today", "true", {
-                    maxAge: 604800, // 7 days
-                    path: "/",
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: "lax",
-                });
-            }
-        } catch (e) {
-            console.error("KV Error:", e);
+            const currentCountStr = await env.VIEWS.get(SITE_VIEW_KEY);
+            const parsed = Number.parseInt(currentCountStr || "0", 10);
+            currentViewCount = Number.isFinite(parsed) ? parsed : 0;
+            locals.viewCount = currentViewCount;
+            canWriteSiteView = true;
+        } catch (error) {
+            console.error("KV Error:", error);
         }
-    } else {
-        viewCount = 8888; // Dev fallback
+    } else if (!env?.VIEWS && isKnownContentRequest) {
+        locals.viewCount = 8888; // Dev fallback
     }
 
-    locals.viewCount = viewCount;
-    return next();
+    const response = await next();
+
+    if (
+        canWriteSiteView &&
+        isKnownContentRequest &&
+        !isSuspiciousUa &&
+        response.status === 200 &&
+        !cookies.has(SITE_VIEW_COOKIE)
+    ) {
+        try {
+            await env.VIEWS.put(SITE_VIEW_KEY, String(currentViewCount + 1));
+            cookies.set(SITE_VIEW_COOKIE, "true", {
+                maxAge: SITE_VIEW_COOKIE_MAX_AGE,
+                path: "/",
+                httpOnly: true,
+                secure: true,
+                sameSite: "lax",
+            });
+        } catch (error) {
+            console.error("KV Error:", error);
+        }
+    }
+
+    return response;
 }
 
 export const onRequest = viewCounterMiddleware;
