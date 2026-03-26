@@ -2,31 +2,46 @@
  * Middleware for site view counting:
  * - Count only HTML document requests on known content routes.
  * - Skip counting for non-200 responses.
- * - Skip counting for obvious scanner user agents.
+ * - Return 404 immediately for blocked scanner/crawler user agents.
  */
 const SITE_VIEW_KEY = "site_views";
 const VISITOR_ID_COOKIE = "visitor_id";
 const SITE_VIEW_COOKIE = "has_visited_today";
 
 const VISITOR_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
-const SITE_VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const SITE_VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 1; // 1 days
 
 const CONTENT_ROUTE_PREFIXES = ["/about-me", "/blog", "/projects", "/tools"];
 const STATIC_ASSET_EXT_RE =
     /\.(?:avif|bmp|css|gif|ico|jpe?g|js|json|map|mjs|png|svg|txt|webmanifest|webp|woff2?|xml)$/i;
 
-// Keep this list short and high-confidence for maintainability.
-const SUSPICIOUS_UA_KEYWORDS = [
-    "curl/",
-    "wget/",
-    "python-requests",
+// Compact deny-list: includes user-requested signatures + common scanner probes.
+const BLOCKED_UA_KEYWORDS = [
+    "curl",
+    "wget",
+    "python",
     "go-http-client",
+    "libwww",
     "sqlmap",
     "nikto",
     "nmap",
     "masscan",
     "zgrab",
-    "libwww-perl",
+    "scrapy",
+    "crawler",
+    "acunetix",
+    "nessus",
+    "openvas",
+    "dirbuster",
+    "gobuster",
+    "wpscan",
+    "whatweb",
+    "nuclei",
+    "jaeles",
+    "httprobe",
+    "feroxbuster",
+    "ffuf",
+    "arachni",
 ];
 
 function normalizePath(pathname) {
@@ -62,10 +77,10 @@ function isHtmlDocumentRequest(request, pathname) {
     return true;
 }
 
-function isSuspiciousUserAgent(userAgent) {
+function isBlockedUserAgent(userAgent) {
     if (!userAgent) return false;
     const ua = userAgent.toLowerCase();
-    return SUSPICIOUS_UA_KEYWORDS.some((keyword) => ua.includes(keyword));
+    return BLOCKED_UA_KEYWORDS.some((keyword) => ua.includes(keyword));
 }
 
 function getOrCreateVisitorId(cookies) {
@@ -89,16 +104,25 @@ async function viewCounterMiddleware(context, next) {
     const env = locals.runtime?.env || {};
     const { pathname } = new URL(request.url);
     const userAgent = request.headers.get("user-agent") || "";
+    const isBlockedUa = isBlockedUserAgent(userAgent);
+
+    if (isBlockedUa) {
+        return new Response("Not Found", {
+            status: 404,
+            headers: {
+                "Cache-Control": "no-store",
+            },
+        });
+    }
 
     const isHtmlRequest = isHtmlDocumentRequest(request, pathname);
     const isKnownContentRequest = isHtmlRequest && isKnownContentPath(pathname);
     const isStatsApiRequest = pathname.startsWith("/api/stats/");
-    const isSuspiciousUa = isSuspiciousUserAgent(userAgent);
 
     locals.viewCount = 0;
 
     // visitorId is used by page render and /api/stats interactions.
-    if ((isKnownContentRequest || isStatsApiRequest) && !isSuspiciousUa) {
+    if (isKnownContentRequest || isStatsApiRequest) {
         locals.visitorId = getOrCreateVisitorId(cookies);
     }
 
@@ -124,7 +148,6 @@ async function viewCounterMiddleware(context, next) {
     if (
         canWriteSiteView &&
         isKnownContentRequest &&
-        !isSuspiciousUa &&
         response.status === 200 &&
         !cookies.has(SITE_VIEW_COOKIE)
     ) {
