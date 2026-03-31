@@ -2,7 +2,7 @@
 title: "前端资质越高，越来越不敢随便升级框架？"
 description: "一次将 React 17 升级到 React 19、并替换 Webpack 为 Rsbuild 的 PR，引发的真实技术反思。"
 pubDate: 2026-03-31
-lastModified: 2026-03-31T19:16:00.000Z
+lastModified: 2026-03-31T19:17:00.000Z
 author: "ErpanOmer"
 draft: false
 tags: ["前端", "前端框架升级", "前端工程化", "前端架构"]
