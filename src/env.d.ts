@@ -7,6 +7,7 @@ type ENV = {
     VIEWS: KVNamespace;
     BLOG_DB: D1Database;
     JUEJIN_KV: KVNamespace;
+    WEBSITE_ADMIN_TOKEN?: string;
 };
 
 type Runtime = import("@astrojs/cloudflare").Runtime<ENV>;

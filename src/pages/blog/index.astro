@@ -3,13 +3,27 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
 import { getAllPostStats } from "@/lib/db";
+import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
 
-const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+// Get static Markdown posts (non-draft)
+const staticEntries = (await getCollection("blog", ({ data }) => !data.draft));
+const staticPosts = staticEntries.map(normalizeStaticPost);
+
+// Fetch D1 published posts
+const db = Astro.locals.runtime.env.BLOG_DB;
+let dbPosts: ReturnType<typeof normalizeDbPost>[] = [];
+try {
+    const dbRows = await getDbPublishedPosts(db, { limit: 200 });
+    dbPosts = dbRows.map(normalizeDbPost);
+} catch (e) {
+    // D1 may not have new columns yet during migration; gracefully degrade
+    console.error('Failed to fetch D1 posts for blog index:', e);
+}
+
+// Merge and sort
+const posts = mergeStaticAndDbPosts(staticPosts, dbPosts);
 
 // Fetch stats for all posts in one batch efficiently
-const db = Astro.locals.runtime.env.BLOG_DB;
 const postStats = await getAllPostStats(db);
 ---
 
@@ -48,11 +62,11 @@ const postStats = await getAllPostStats(db);
                 posts.map((post) => (
                     <a href={`/blog/${post.slug}`} class="group block">
                         <article class="flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 -mx-4 rounded-xl hover:bg-zinc-900/50 transition-colors">
-                            {post.data.cover && (
+                            {post.cover && (
                                 <div class="aspect-video flex-[0.5] flex-shrink-0 rounded-lg overflow-hidden bg-zinc-800">
                                     <img
-                                        src={post.data.cover}
-                                        alt={post.data.title}
+                                        src={post.cover}
+                                        alt={post.title}
                                         loading="lazy"
                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
@@ -62,9 +76,9 @@ const postStats = await getAllPostStats(db);
                                 <div>
                                     <time
                                         class="text-sm text-zinc-500"
-                                        datetime={post.data.pubDate.toISOString()}
+                                        datetime={new Date(post.pubDate).toISOString()}
                                     >
-                                        {post.data.pubDate.toLocaleDateString(
+                                        {new Date(post.pubDate).toLocaleDateString(
                                             "zh-CN",
                                             {
                                                 year: "numeric",
@@ -74,17 +88,17 @@ const postStats = await getAllPostStats(db);
                                         )}
                                     </time>
                                     <h2 class="text-base sm:text-lg font-semibold text-white mt-1.5 mb-1.5 group-hover:text-indigo-400 transition-colors leading-snug">
-                                        {post.data.title}
+                                        {post.title}
                                     </h2>
                                     <p class="text-sm text-zinc-400 line-clamp-2 leading-relaxed">
-                                        {post.data.description}
+                                        {post.description}
                                     </p>
                                 </div>
                                 
                                 <div class="mt-auto pt-4 flex items-end justify-between">
-                                    {post.data.tags.length > 0 ? (
+                                    {post.tags.length > 0 ? (
                                         <div class="flex flex-wrap gap-1.5">
-                                            {post.data.tags
+                                            {post.tags
                                                 .slice(0, 3)
                                                 .map((tag) => (
                                                     <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
@@ -98,11 +112,11 @@ const postStats = await getAllPostStats(db);
                                     <div class="flex items-center gap-3 text-xs font-medium text-zinc-500 shrink-0">
                                         <div class="flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                            <span>{postStats[post.slug]?.views || 0}</span>
+                                            <span>{postStats[post.slug]?.views || post.views || 0}</span>
                                         </div>
                                         <div class="flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-red-500/70 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                            <span>{postStats[post.slug]?.likes || 0}</span>
+                                            <span>{postStats[post.slug]?.likes || post.likes || 0}</span>
                                         </div>
                                     </div>
                                 </div>

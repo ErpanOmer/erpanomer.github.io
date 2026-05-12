@@ -1,16 +1,27 @@
 import { getCollection } from "astro:content";
 import { projects } from "@/data/projects";
+import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
 
-export async function GET() {
+export async function GET(context: any) {
     const blogEntries = await getCollection("blog", ({ data }) => {
         return !data.draft;
     });
+    const staticPosts = blogEntries.map(normalizeStaticPost);
+
+    // Fetch D1 published posts
+    let dbPosts: ReturnType<typeof normalizeDbPost>[] = [];
+    try {
+        const db = context.locals.runtime.env.BLOG_DB;
+        const dbRows = await getDbPublishedPosts(db, { limit: 200 });
+        dbPosts = dbRows.map(normalizeDbPost);
+    } catch (e) {
+        console.error('llms.txt: Failed to fetch D1 posts:', e);
+    }
+
+    // Merge and deduplicate
+    const allPosts = mergeStaticAndDbPosts(staticPosts, dbPosts);
 
     // projects is a static array imported from "@/data/projects"
-
-    const sortedBlogEntries = blogEntries.sort(
-        (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-    );
 
     const aboutMeContent = `<p align="center">
   <image width="350" src="https://cdn.shopify.com/s/files/1/0583/5810/4213/files/8b116889-af12-4694-afa0-08a9a5919a62.webp?v=1766544591&width=600" />
@@ -66,12 +77,12 @@ export async function GET() {
     content += `\n`;
 
     content += `## Blog Posts\n\n`;
-    if (sortedBlogEntries.length > 0) {
-        for (const post of sortedBlogEntries) {
-            content += `- [${post.data.title}](/blog/${post.slug})\n`;
-            content += `  - ${post.data.description}\n`;
-            if (post.data.pubDate) {
-                content += `  - Published: ${post.data.pubDate.toISOString().split('T')[0]}\n`
+    if (allPosts.length > 0) {
+        for (const post of allPosts) {
+            content += `- [${post.title}](/blog/${post.slug})\n`;
+            content += `  - ${post.description}\n`;
+            if (post.pubDate) {
+                content += `  - Published: ${post.pubDate}\n`
             }
         }
     } else {

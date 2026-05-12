@@ -1,5 +1,6 @@
 import { getCollection } from "astro:content";
 import { projects } from "@/data/projects";
+import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
 
 const SITE_URL = "https://erpanomer.nurverse.com";
 
@@ -16,23 +17,33 @@ function escapeXml(unsafe: string): string {
     });
 }
 
-export async function GET() {
+export async function GET(context: any) {
     const blogEntries = await getCollection("blog", ({ data }) => {
         return !data.draft;
     });
+    const staticPosts = blogEntries.map(normalizeStaticPost);
 
-    const sortedBlogEntries = blogEntries.sort(
-        (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-    );
+    // Fetch D1 published posts
+    let dbPosts: ReturnType<typeof normalizeDbPost>[] = [];
+    try {
+        const db = context.locals.runtime.env.BLOG_DB;
+        const dbRows = await getDbPublishedPosts(db, { limit: 200 });
+        dbPosts = dbRows.map(normalizeDbPost);
+    } catch (e) {
+        console.error('Sitemap: Failed to fetch D1 posts:', e);
+    }
+
+    // Merge and deduplicate
+    const allPosts = mergeStaticAndDbPosts(staticPosts, dbPosts);
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">`;
 
     // Blog Posts
-    for (const post of sortedBlogEntries) {
+    for (const post of allPosts) {
         xml += `<url>`;
         xml += `<loc>${escapeXml(`${SITE_URL}/blog/${post.slug}`)}</loc>`;
-        xml += `<lastmod>${(post.data.updatedDate || post.data.pubDate).toISOString()}</lastmod>`;
+        xml += `<lastmod>${new Date(post.lastModified || post.pubDate).toISOString()}</lastmod>`;
         xml += `</url>`;
     }
 

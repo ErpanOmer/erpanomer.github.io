@@ -27,9 +27,9 @@ interface Heading {
         </div>
 
         {
-            headings.map((heading: Heading) => (
+            headings.map((heading: Heading, index: number) => (
                 <li
-                    class={`toc-item depth-${heading.depth} transition-all duration-200`}
+                    class={`toc-item depth-${heading.depth} transition-all duration-200 ${index === 0 ? 'active' : ''}`}
                     data-slug={heading.slug}
                 >
                     <a
@@ -103,5 +103,13 @@ interface Heading {
                 }
             }
         }
+
+        // Initialize indicator position
+        setTimeout(() => {
+            const activeLink = document.querySelector('.toc-item.active');
+            if (activeLink) {
+                updateActive(activeLink.getAttribute('data-slug'));
+            }
+        }, 100);
     });
 </script>

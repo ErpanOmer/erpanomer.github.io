@@ -3,68 +3,159 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection, getEntry } from "astro:content";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import getReadingTime from "reading-time";
 import Giscus from "@/components/Giscus.astro";
-import { getPost, getRecentPosts, getPopularPosts, syncPost } from "@/lib/db";
+
+import { getPost, syncPost, getAllPostStats } from "@/lib/db";
+import { getDbPostBySlug, normalizeDbPost, getDbPublishedPosts, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
 
 import BlogStats from "@/components/BlogStats.astro";
 import AuthorCard from "@/components/AuthorCard.astro";
 import PostSidebarList from "@/components/PostSidebarList.astro";
 import TableOfContents from "@/components/TableOfContents.astro";
 
-// SSR Mode: fetch post dynamically based on slug param
-const { slug } = Astro.params;
 dayjs.extend(utc);
 
+// --------------------------------------------------------
+// 1. Params & DB Initialization
+// --------------------------------------------------------
+const { slug } = Astro.params;
 if (!slug) {
     return Astro.redirect("/blog");
 }
 
+const db = Astro.locals.runtime.env.BLOG_DB;
+const visitorId = Astro.locals.visitorId || "anonymous";
+
+// --------------------------------------------------------
+// 2. Fetch Post Data (Static + D1)
+// --------------------------------------------------------
 const postEntry = await getEntry("blog", slug);
 
-if (!postEntry) {
-    return Astro.redirect("/blog");
+let dbPostRow: any = null;
+try {
+    dbPostRow = await getDbPostBySlug(db, slug, false);
+} catch (e) {
+    console.error('Failed to fetch D1 post:', e);
 }
 
-// Fetch from DB to override metadata
-const db = Astro.locals.runtime.env.BLOG_DB;
-// Use visitorId from middleware for consistent tracking
-const visitorId = Astro.locals.visitorId || "anonymous";
-let dbPost = await getPost(db, slug, visitorId);
+if (!postEntry && !dbPostRow) {
+    return new Response(null, { status: 404, headers: { 'Location': '/404' } });
+}
 
-// Lazy Sync: If post doesn't exist in DB, insert it from frontmatter
-if (!dbPost) {
-    await syncPost(db, {
-        slug,
-        title: postEntry.data.title,
-        description: postEntry.data.description,
-        pubDate: postEntry.data.pubDate,
-        lastModified: postEntry.data.lastModified,
-        author: postEntry.data.author,
-        cover: postEntry.data.cover,
-        tags: postEntry.data.tags,
-        draft: postEntry.data.draft ?? false,
+const dbPost = dbPostRow ? normalizeDbPost(dbPostRow) : null;
+
+// --------------------------------------------------------
+// 3. Lazy Sync & Legacy DB Check for Static Posts
+// --------------------------------------------------------
+if (postEntry) {
+    const legacyDbPost = await getPost(db, slug, visitorId);
+    if (!legacyDbPost) {
+        await syncPost(db, {
+            slug,
+            title: postEntry.data.title,
+            description: postEntry.data.description,
+            pubDate: postEntry.data.pubDate,
+            lastModified: postEntry.data.lastModified,
+            author: postEntry.data.author,
+            cover: postEntry.data.cover,
+            tags: postEntry.data.tags,
+            draft: postEntry.data.draft ?? false,
+        });
+    }
+}
+
+// --------------------------------------------------------
+// 4. Merge Metadata (D1 DB > Frontmatter)
+// --------------------------------------------------------
+const title = dbPost?.title || postEntry?.data.title || '';
+const description = dbPost?.description || postEntry?.data.description || '';
+const pubDate = dbPost?.pubDate 
+    ? new Date(dbPost.pubDate) 
+    : (postEntry ? postEntry.data.pubDate : new Date());
+const lastModifiedVal = dbPost?.lastModified 
+    ? new Date(dbPost.lastModified) 
+    : (postEntry ? postEntry.data.lastModified : null);
+const author = dbPost?.author || postEntry?.data.author || 'ErpanOmer';
+const cover = dbPost?.cover || postEntry?.data.cover || null;
+const tags = dbPost?.tags?.length ? dbPost.tags : (postEntry?.data.tags || []);
+
+// --------------------------------------------------------
+// 5. Sidebar Lists (Recent & Popular)
+// --------------------------------------------------------
+// Fetch all valid posts to prevent deleted markdown files (orphaned stats) from appearing
+const allStaticEntries = await getCollection("blog", ({ data }) => !data.draft);
+const allStaticPosts = allStaticEntries.map(normalizeStaticPost);
+
+let allDbPostsList: any[] = [];
+try {
+    const dbRows = await getDbPublishedPosts(db, { limit: 200 });
+    allDbPostsList = dbRows.map(normalizeDbPost);
+} catch (e) {
+    console.error('Failed to fetch DB posts for sidebar:', e);
+}
+
+const allValidPosts = mergeStaticAndDbPosts(allStaticPosts, allDbPostsList);
+const otherValidPosts = allValidPosts.filter(p => p.slug !== slug);
+
+const recentPosts = otherValidPosts.slice(0, 3);
+
+// Fetch stats to sort popular posts accurately
+const allStats = await getAllPostStats(db);
+const popularPosts = [...otherValidPosts]
+    .sort((a, b) => (allStats[b.slug]?.views || 0) - (allStats[a.slug]?.views || 0))
+    .slice(0, 3);
+
+// --------------------------------------------------------
+// 6. Content Rendering & Heading Extraction
+// --------------------------------------------------------
+let Content: any = null;
+let remarkPluginFrontmatter: any = {};
+let headings: any[] = [];
+let htmlContentForDbOnly = '';
+
+if (postEntry) {
+    // Static Markdown — render as usual
+    const rendered = await postEntry.render();
+    Content = rendered.Content;
+    remarkPluginFrontmatter = rendered.remarkPluginFrontmatter || {};
+    headings = rendered.headings || [];
+} else if (dbPost) {
+    // D1-only post — use html_content or fallback to content
+    htmlContentForDbOnly = dbPost.htmlContent || dbPost.content || '';
+
+    // Calculate reading time
+    const textContent = htmlContentForDbOnly.replace(/<[^>]*>?/gm, '');
+    remarkPluginFrontmatter.minutesRead = getReadingTime(textContent).text;
+
+    // Extract headings and inject IDs if missing so TOC works
+    const headingRegex = /<h([1-6])(.*?)>(.*?)<\/h\1>/gi;
+    htmlContentForDbOnly = htmlContentForDbOnly.replace(headingRegex, (match, level, attrs, text) => {
+        // extract id if exists
+        let idMatch = attrs.match(/id="([^"]+)"/i) || attrs.match(/id='([^']+)'/i);
+        let slug = idMatch ? idMatch[1] : '';
+        
+        // Strip tags from inner text for the TOC text
+        const cleanText = text.replace(/<[^>]*>?/gm, '').trim();
+        
+        if (!slug) {
+            // Generate slug
+            slug = cleanText.toLowerCase().replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, '') || `heading-${Math.random().toString(36).slice(2, 7)}`;
+            
+            // Add id to attrs
+            match = `<h${level} id="${slug}"${attrs}>${text}</h${level}>`;
+        }
+        
+        headings.push({
+            depth: parseInt(level, 10),
+            slug,
+            text: cleanText
+        });
+        
+        return match;
     });
-    // Optional: Valid dbPost object for immediate use (though fallback handles it)
-    // dbPost = { ... }
 }
 
-// Merge: DB > Frontmatter
-const title = dbPost?.title || postEntry.data.title;
-const description = dbPost?.description || postEntry.data.description;
-const pubDate = dbPost?.pub_date
-    ? new Date(dbPost.pub_date)
-    : postEntry.data.pubDate;
-const lastModifiedVal = dbPost?.last_modified
-    ? new Date(dbPost.last_modified)
-    : postEntry.data.lastModified;
-const author = dbPost?.author || postEntry.data.author;
-const cover = dbPost?.cover || postEntry.data.cover;
-const tags = dbPost?.tags ? JSON.parse(dbPost.tags) : postEntry.data.tags;
-
-const recentPosts = await getRecentPosts(db, 3);
-const popularPosts = await getPopularPosts(db, 3);
-
-const { Content, remarkPluginFrontmatter, headings } = await postEntry.render();
 const lastModifiedFormatted = dayjs(
     lastModifiedVal || remarkPluginFrontmatter.lastModified,
 ).format("YYYY-MM-DD HH:mm:ss");
@@ -190,8 +281,12 @@ const jsonLd = {
                     </div>
                     <span>·</span>
                     <span>{new Date(pubDate).toLocaleDateString("sv-SE")}</span>
-                    <span>·</span>
-                    <span>{remarkPluginFrontmatter.minutesRead}</span>
+                    {remarkPluginFrontmatter.minutesRead && (
+                        <>
+                            <span>·</span>
+                            <span>{remarkPluginFrontmatter.minutesRead}</span>
+                        </>
+                    )}
                 </div>
             </header>
 
@@ -213,7 +308,11 @@ const jsonLd = {
             <div
                 class="prose-blog prose prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-400 hover:prose-a:text-indigo-300 prose-img:rounded-xl"
             >
-                <Content />
+                {Content ? (
+                    <Content />
+                ) : (
+                    <Fragment set:html={htmlContentForDbOnly} />
+                )}
             </div>
 
             <Giscus />
@@ -300,7 +399,7 @@ const jsonLd = {
                 class="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-4 custom-scrollbar"
             >
                 <AuthorCard author={author} />
-                <TableOfContents headings={headings} />
+                {headings.length > 0 && <TableOfContents headings={headings} />}
                 <PostSidebarList title="最新博客" posts={recentPosts} />
                 <div class="mt-12 pb-8">
                     <PostSidebarList title="热门博客" posts={popularPosts} />
