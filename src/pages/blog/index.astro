@@ -3,7 +3,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
 import { getAllPostStats } from "@/lib/db";
-import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
+import {
+    formatPostDate,
+    getDbPublishedPosts,
+    mergeStaticAndDbPosts,
+    normalizeDbPost,
+    normalizeStaticPost,
+    toPostDateTime,
+} from "@/lib/posts";
 
 // Get static Markdown posts (non-draft)
 const staticEntries = (await getCollection("blog", ({ data }) => !data.draft));
@@ -24,7 +31,12 @@ try {
 const posts = mergeStaticAndDbPosts(staticPosts, dbPosts);
 
 // Fetch stats for all posts in one batch efficiently
-const postStats = await getAllPostStats(db);
+let postStats: Record<string, { views: number; likes: number }> = {};
+try {
+    postStats = await getAllPostStats(db);
+} catch (e) {
+    console.error('Failed to fetch post stats for blog index:', e);
+}
 ---
 
 <BaseLayout
@@ -76,21 +88,23 @@ const postStats = await getAllPostStats(db);
                                 <div>
                                     <time
                                         class="text-sm text-zinc-500"
-                                        datetime={new Date(post.pubDate).toISOString()}
+                                        datetime={toPostDateTime(post.pubDate)}
                                     >
-                                        {new Date(post.pubDate).toLocaleDateString(
+                                        {formatPostDate(
+                                            post.pubDate,
                                             "zh-CN",
                                             {
                                                 year: "numeric",
                                                 month: "short",
                                                 day: "numeric",
                                             },
+                                            "未知日期",
                                         )}
                                     </time>
                                     <h2 class="text-base sm:text-lg font-semibold text-white mt-1.5 mb-1.5 group-hover:text-indigo-400 transition-colors leading-snug">
                                         {post.title}
                                     </h2>
-                                    <p class="text-sm text-zinc-400 line-clamp-2 leading-relaxed">
+                                    <p class="blog-description-clamp text-sm text-zinc-400 leading-relaxed">
                                         {post.description}
                                     </p>
                                 </div>

@@ -1,6 +1,6 @@
 import rss from '@astrojs/rss';
 import { getCollection } from 'astro:content';
-import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from '@/lib/posts';
+import { getDbPublishedPosts, mergeStaticAndDbPosts, normalizeDbPost, normalizeStaticPost, parsePostDate } from '@/lib/posts';
 
 export async function GET(context) {
     const blog = await getCollection('blog', ({ data }) => !data.draft);
@@ -25,7 +25,7 @@ export async function GET(context) {
         site: context.site,
         items: allPosts.map((post) => ({
             title: post.title,
-            pubDate: new Date(post.pubDate),
+            pubDate: parsePostDate(post.pubDate) || new Date(),
             description: post.description,
             link: `/blog/${post.slug}/`,
         })),

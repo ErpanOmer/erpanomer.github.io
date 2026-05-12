@@ -1,6 +1,12 @@
 import { getCollection } from "astro:content";
 import { projects } from "@/data/projects";
-import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
+import {
+    getDbPublishedPosts,
+    mergeStaticAndDbPosts,
+    normalizeDbPost,
+    normalizeStaticPost,
+    parsePostDate,
+} from "@/lib/posts";
 
 const SITE_URL = "https://erpanomer.nurverse.com";
 
@@ -41,9 +47,11 @@ export async function GET(context: any) {
 
     // Blog Posts
     for (const post of allPosts) {
+        const lastmod = parsePostDate(post.lastModified) || parsePostDate(post.pubDate) || new Date();
+
         xml += `<url>`;
         xml += `<loc>${escapeXml(`${SITE_URL}/blog/${post.slug}`)}</loc>`;
-        xml += `<lastmod>${new Date(post.lastModified || post.pubDate).toISOString()}</lastmod>`;
+        xml += `<lastmod>${lastmod.toISOString()}</lastmod>`;
         xml += `</url>`;
     }
 

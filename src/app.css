@@ -131,6 +131,17 @@
         @apply bg-transparent p-0 text-sm leading-relaxed;
         color: inherit;
     }
+
+    .blog-description-clamp {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.625;
+        min-height: calc(1em * 1.625 * 2);
+        max-height: calc(1em * 1.625 * 2);
+    }
 }
 
 @layer utilities {

@@ -30,6 +30,8 @@ export interface DBPostRow {
     deleted_at: number | null;
 }
 
+export type PostDateInput = string | number | Date | null | undefined;
+
 /** Normalized post returned to callers / API responses */
 export interface NormalizedPost {
     slug: string;
@@ -57,14 +59,50 @@ export interface NormalizedPost {
 
 // ---------- Helpers ----------
 
-function toISOOrNull(ts: number | null | undefined): string | null {
-    if (!ts) return null;
-    return new Date(ts).toISOString();
+export function parsePostDate(value: PostDateInput): Date | null {
+    if (value === null || value === undefined || value === '') return null;
+
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    const rawValue = typeof value === 'string' ? value.trim() : value;
+    if (rawValue === '') return null;
+
+    let date: Date;
+    if (typeof rawValue === 'number' || /^\d+$/.test(rawValue)) {
+        const numericValue = Number(rawValue);
+        const timestamp = numericValue < 1_000_000_000_000 ? numericValue * 1000 : numericValue;
+        date = new Date(timestamp);
+    } else {
+        date = new Date(rawValue);
+    }
+
+    return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function toDateString(ts: number | null | undefined): string {
-    if (!ts) return new Date().toISOString().split('T')[0];
-    return new Date(ts).toISOString().split('T')[0];
+export function toPostDateTime(value: PostDateInput, fallback?: PostDateInput): string | undefined {
+    const date = parsePostDate(value) || parsePostDate(fallback);
+    return date?.toISOString();
+}
+
+export function formatPostDate(
+    value: PostDateInput,
+    locale: string = 'zh-CN',
+    options?: Intl.DateTimeFormatOptions,
+    fallback?: string,
+): string {
+    const date = parsePostDate(value);
+    if (!date) return fallback ?? '';
+    return date.toLocaleDateString(locale, options);
+}
+
+function toISOOrNull(ts: PostDateInput): string | null {
+    return toPostDateTime(ts) ?? null;
+}
+
+function toDateString(ts: PostDateInput): string {
+    return (toPostDateTime(ts) || new Date().toISOString()).split('T')[0];
 }
 
 function parseJsonTags(raw: string | null | undefined): string[] {
@@ -336,8 +374,8 @@ export async function upsertAdminPost(
     const pubDateStr = payload.pubDate || payload.pub_date;
     const lastModifiedStr = payload.lastModified || payload.last_modified;
 
-    const pubDate = pubDateStr ? new Date(pubDateStr).getTime() : now;
-    const lastModified = lastModifiedStr ? new Date(lastModifiedStr).getTime() : now;
+    const pubDate = parsePostDate(pubDateStr)?.getTime() ?? now;
+    const lastModified = parsePostDate(lastModifiedStr)?.getTime() ?? now;
     const draft = payload.draft === undefined ? true : payload.draft;
     const tags = JSON.stringify(payload.tags || []);
     const author = payload.author || 'ErpanOmer';
@@ -436,8 +474,8 @@ export async function updateAdminPost(
     const description = payload.description ?? existing.description;
     const content = markdownContent !== undefined ? markdownContent : existing.content;
     const html = htmlContent !== undefined ? htmlContent : existing.html_content;
-    const pubDate = pubDateStr ? new Date(pubDateStr).getTime() : existing.pub_date;
-    const lastModified = lastModifiedStr ? new Date(lastModifiedStr).getTime() : now;
+    const pubDate = parsePostDate(pubDateStr)?.getTime() ?? existing.pub_date ?? now;
+    const lastModified = parsePostDate(lastModifiedStr)?.getTime() ?? now;
     const author = payload.author ?? existing.author;
     const cover = payload.cover !== undefined ? payload.cover : existing.cover;
     const tags = payload.tags ? JSON.stringify(payload.tags) : existing.tags;

@@ -1,20 +1,24 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection, getEntry } from "astro:content";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import getReadingTime from "reading-time";
 import Giscus from "@/components/Giscus.astro";
 
 import { getPost, syncPost, getAllPostStats } from "@/lib/db";
-import { getDbPostBySlug, normalizeDbPost, getDbPublishedPosts, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
+import {
+    formatPostDate,
+    getDbPostBySlug,
+    mergeStaticAndDbPosts,
+    normalizeDbPost,
+    normalizeStaticPost,
+    getDbPublishedPosts,
+    parsePostDate,
+} from "@/lib/posts";
 
 import BlogStats from "@/components/BlogStats.astro";
 import AuthorCard from "@/components/AuthorCard.astro";
 import PostSidebarList from "@/components/PostSidebarList.astro";
 import TableOfContents from "@/components/TableOfContents.astro";
-
-dayjs.extend(utc);
 
 // --------------------------------------------------------
 // 1. Params & DB Initialization
@@ -70,12 +74,8 @@ if (postEntry) {
 // --------------------------------------------------------
 const title = dbPost?.title || postEntry?.data.title || '';
 const description = dbPost?.description || postEntry?.data.description || '';
-const pubDate = dbPost?.pubDate 
-    ? new Date(dbPost.pubDate) 
-    : (postEntry ? postEntry.data.pubDate : new Date());
-const lastModifiedVal = dbPost?.lastModified 
-    ? new Date(dbPost.lastModified) 
-    : (postEntry ? postEntry.data.lastModified : null);
+const pubDate = parsePostDate(dbPost?.pubDate) || postEntry?.data.pubDate || new Date();
+const lastModifiedVal = parsePostDate(dbPost?.lastModified) || postEntry?.data.lastModified || null;
 const author = dbPost?.author || postEntry?.data.author || 'ErpanOmer';
 const cover = dbPost?.cover || postEntry?.data.cover || null;
 const tags = dbPost?.tags?.length ? dbPost.tags : (postEntry?.data.tags || []);
@@ -95,13 +95,22 @@ try {
     console.error('Failed to fetch DB posts for sidebar:', e);
 }
 
-const allValidPosts = mergeStaticAndDbPosts(allStaticPosts, allDbPostsList);
+// Fetch stats to sort popular posts accurately
+let allStats: Record<string, { views: number; likes: number }> = {};
+try {
+    allStats = await getAllPostStats(db);
+} catch (e) {
+    console.error('Failed to fetch post stats for sidebar:', e);
+}
+
+const allValidPosts = mergeStaticAndDbPosts(allStaticPosts, allDbPostsList).map((post) => ({
+    ...post,
+    views: allStats[post.slug]?.views ?? post.views,
+    likes: allStats[post.slug]?.likes ?? post.likes,
+}));
 const otherValidPosts = allValidPosts.filter(p => p.slug !== slug);
 
 const recentPosts = otherValidPosts.slice(0, 3);
-
-// Fetch stats to sort popular posts accurately
-const allStats = await getAllPostStats(db);
 const popularPosts = [...otherValidPosts]
     .sort((a, b) => (allStats[b.slug]?.views || 0) - (allStats[a.slug]?.views || 0))
     .slice(0, 3);
@@ -156,19 +165,13 @@ if (postEntry) {
     });
 }
 
-const lastModifiedFormatted = dayjs(
-    lastModifiedVal || remarkPluginFrontmatter.lastModified,
-).format("YYYY-MM-DD HH:mm:ss");
-
 const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: title,
     description: description,
     datePublished: pubDate.toISOString(),
-    dateModified: lastModifiedVal
-        ? dayjs(lastModifiedVal).toISOString()
-        : pubDate.toISOString(),
+    dateModified: (lastModifiedVal || pubDate).toISOString(),
     author: {
         "@type": "Person",
         name: author,
@@ -280,7 +283,7 @@ const jsonLd = {
                         <span class="font-medium text-gray-300">{author}</span>
                     </div>
                     <span>·</span>
-                    <span>{new Date(pubDate).toLocaleDateString("sv-SE")}</span>
+                    <span>{formatPostDate(pubDate, "sv-SE")}</span>
                     {remarkPluginFrontmatter.minutesRead && (
                         <>
                             <span>·</span>

@@ -1,6 +1,13 @@
 ---
 import { getCollection } from "astro:content";
-import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
+import {
+    formatPostDate,
+    getDbPublishedPosts,
+    mergeStaticAndDbPosts,
+    normalizeDbPost,
+    normalizeStaticPost,
+    toPostDateTime,
+} from "@/lib/posts";
 
 const staticEntries = await getCollection("blog", ({ data }) => !data.draft);
 const staticPosts = staticEntries.map(normalizeStaticPost);
@@ -11,7 +18,7 @@ try {
     const dbRows = await getDbPublishedPosts(db, { limit: 10 });
     dbPosts = dbRows.map(normalizeDbPost);
 } catch (e) {
-    console.error('Failed to fetch D1 posts for LatestPosts:', e);
+    console.error("Failed to fetch D1 posts for LatestPosts:", e);
 }
 
 const posts = mergeStaticAndDbPosts(staticPosts, dbPosts).slice(0, 3);
@@ -54,18 +61,23 @@ const posts = mergeStaticAndDbPosts(staticPosts, dbPosts).slice(0, 3);
                         <div class="p-6 flex-1 flex flex-col">
                             <time
                                 class="text-sm text-zinc-500 dark:text-zinc-400"
-                                datetime={new Date(post.pubDate).toISOString()}
+                                datetime={toPostDateTime(post.pubDate)}
                             >
-                                {new Date(post.pubDate).toLocaleDateString("zh-CN", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })}
+                                {formatPostDate(
+                                    post.pubDate,
+                                    "zh-CN",
+                                    {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                    },
+                                    "未知日期"
+                                )}
                             </time>
-                            <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mt-2 mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
+                            <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mt-2 mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 flex-1">
                                 {post.title}
                             </h3>
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 flex-1 min-h-[2.5rem]">
+                            <p class="blog-description-clamp text-sm text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">
                                 {post.description}
                             </p>
                         </div>
@@ -73,7 +85,6 @@ const posts = mergeStaticAndDbPosts(staticPosts, dbPosts).slice(0, 3);
                 </a>
             ))
         }
-
     </div>
 
     {
