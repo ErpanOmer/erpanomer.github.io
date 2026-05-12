@@ -8,7 +8,7 @@ import { getAdminPosts, upsertAdminPost, normalizeDbPost } from '@/lib/posts';
 export const GET: APIRoute = async ({ request, locals, url }) => {
     const env = locals.runtime.env;
 
-    const authError = requireAdmin(request, env);
+    const authError = await requireAdmin(request, env);
     if (authError) return authError;
 
     try {
@@ -71,7 +71,7 @@ export const GET: APIRoute = async ({ request, locals, url }) => {
 export const POST: APIRoute = async ({ request, locals, url }) => {
     const env = locals.runtime.env;
 
-    const authError = requireAdmin(request, env);
+    const authError = await requireAdmin(request, env);
     if (authError) return authError;
 
     try {

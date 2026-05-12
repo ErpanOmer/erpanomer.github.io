@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/admin-auth';
 export const GET: APIRoute = async ({ request, locals }) => {
     const env = locals.runtime.env;
 
-    const authError = requireAdmin(request, env);
+    const authError = await requireAdmin(request, env);
     if (authError) return authError;
 
     const url = new URL(request.url);

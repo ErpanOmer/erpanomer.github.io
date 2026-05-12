@@ -8,7 +8,7 @@ import { getDbPostBySlug, updateAdminPost, softDeleteAdminPost, normalizeDbPost 
 export const GET: APIRoute = async ({ request, locals, params, url }) => {
     const env = locals.runtime.env;
 
-    const authError = requireAdmin(request, env);
+    const authError = await requireAdmin(request, env);
     if (authError) return authError;
 
     try {
@@ -72,7 +72,7 @@ export const GET: APIRoute = async ({ request, locals, params, url }) => {
 export const PUT: APIRoute = async ({ request, locals, params, url }) => {
     const env = locals.runtime.env;
 
-    const authError = requireAdmin(request, env);
+    const authError = await requireAdmin(request, env);
     if (authError) return authError;
 
     try {
@@ -131,7 +131,7 @@ export const PUT: APIRoute = async ({ request, locals, params, url }) => {
 export const DELETE: APIRoute = async ({ request, locals, params }) => {
     const env = locals.runtime.env;
 
-    const authError = requireAdmin(request, env);
+    const authError = await requireAdmin(request, env);
     if (authError) return authError;
 
     try {
