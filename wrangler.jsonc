@@ -37,5 +37,12 @@
     },
     "vars": {
         "PUBLIC_CLOUDINARY_CLOUD_NAME": "dkh81cvyt"
-    }
+    },
+    "secrets_store_secrets": [
+        {
+            "binding": "WEBSITE_ADMIN_TOKEN",
+            "store_id": "99d3a15b4f1b4a759d49f0c8501b253b",
+            "secret_name": "WEBSITE_ADMIN_TOKEN"
+        }
+    ]
 }

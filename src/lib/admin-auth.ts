@@ -7,14 +7,14 @@
 const DEV_TOKEN = 'dev-website-admin-token';
 
 interface AdminAuthEnv {
-    WEBSITE_ADMIN_TOKEN?: string;
+    WEBSITE_ADMIN_TOKEN?: any;
 }
 
 /**
  * Validates admin authentication.
  * Returns a Response (401) if auth fails, or null if auth succeeds.
  */
-export function requireAdmin(request: Request, env: AdminAuthEnv): Response | null {
+export async function requireAdmin(request: Request, env: AdminAuthEnv): Promise<Response | null> {
     const authHeader = request.headers.get('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -25,14 +25,17 @@ export function requireAdmin(request: Request, env: AdminAuthEnv): Response | nu
     }
 
     const token = authHeader.slice(7).trim();
+    // Check if we are in local development environment (Astro dev server)
+    const isDevEnv = import.meta.env.DEV;
+    const WEBSITE_ADMIN_TOKEN = isDevEnv ? DEV_TOKEN : (await env.WEBSITE_ADMIN_TOKEN.get());
 
     // Check against configured secret
-    if (env.WEBSITE_ADMIN_TOKEN && token === env.WEBSITE_ADMIN_TOKEN) {
+    if (WEBSITE_ADMIN_TOKEN && token === WEBSITE_ADMIN_TOKEN) {
         return null; // Auth success
     }
 
     // Fallback: allow dev token on localhost only
-    if (!env.WEBSITE_ADMIN_TOKEN || isLocalhost(request)) {
+    if (!WEBSITE_ADMIN_TOKEN || isLocalhost(request)) {
         if (token === DEV_TOKEN && isLocalhost(request)) {
             return null; // Auth success with dev token
         }
