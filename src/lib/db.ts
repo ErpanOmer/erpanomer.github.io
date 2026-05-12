@@ -3,16 +3,17 @@ import type { D1Database } from "@cloudflare/workers-types";
 // Type definition for Post from DB
 export interface DBPost {
     slug: string;
-    title: string;
-    description: string;
-    pub_date: number;
-    last_modified: number;
-    author: string;
-    cover: string;
-    tags: string; // JSON string
-    draft: number;
-    views: number;
-    likes: number;
+    title?: string;
+    description?: string;
+    pub_date?: number;
+    last_modified?: number;
+    author?: string;
+    cover?: string;
+    tags?: string; // JSON string
+    draft?: number;
+    views?: number;
+    likes?: number;
+    deleted_at?: number | null;
     userHasLiked?: boolean;
 }
 
@@ -144,18 +145,56 @@ export async function syncPost(db: D1Database, data: {
     ).run();
 }
 
-export async function getRecentPosts(db: D1Database, limit: number = 3): Promise<DBPost[]> {
+function getPublishedPostListWhere(excludeSlug?: string) {
+    const conditions = [
+        "draft = 0",
+        "deleted_at IS NULL",
+        "title IS NOT NULL",
+        "title <> ''",
+    ];
+    const binds: unknown[] = [];
+
+    if (excludeSlug) {
+        conditions.push("slug <> ?");
+        binds.push(excludeSlug);
+    }
+
+    return {
+        where: conditions.join(" AND "),
+        binds,
+    };
+}
+
+export async function getRecentPosts(
+    db: D1Database,
+    limit: number = 3,
+    excludeSlug?: string,
+): Promise<DBPost[]> {
+    const { where, binds } = getPublishedPostListWhere(excludeSlug);
     const { results } = await db.prepare(
-        "SELECT * FROM posts WHERE draft = 0 ORDER BY pub_date DESC LIMIT ?"
-    ).bind(limit).all<DBPost>();
+        `SELECT slug, title, pub_date, views
+         FROM posts
+         WHERE ${where}
+         ORDER BY pub_date DESC
+         LIMIT ?`
+    ).bind(...binds, limit).all<DBPost>();
     return results;
 }
 
 
-export async function getPopularPosts(db: D1Database, limit: number = 3): Promise<DBPost[]> {
+export async function getPopularPosts(
+    db: D1Database,
+    limit: number = 3,
+    excludeSlug?: string,
+): Promise<DBPost[]> {
+    const { where, binds } = getPublishedPostListWhere(excludeSlug);
     const { results } = await db.prepare(
-        "SELECT * FROM posts WHERE draft = 0 ORDER BY views DESC, pub_date DESC LIMIT ?"
-    ).bind(limit).all<DBPost>();
+        `SELECT slug, title, pub_date, views
+         FROM posts
+         WHERE ${where}
+         ORDER BY views DESC, pub_date DESC
+         LIMIT ?`
+    ).bind(...binds, limit).all<DBPost>();
     return results;
 }
 

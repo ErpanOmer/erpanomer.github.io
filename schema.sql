@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS posts (
 -- 索引
 CREATE INDEX IF NOT EXISTS idx_posts_source_article_id ON posts(source_article_id);
 CREATE INDEX IF NOT EXISTS idx_posts_draft_pub_date ON posts(draft, pub_date);
+CREATE INDEX IF NOT EXISTS idx_posts_sidebar_recent ON posts(draft, deleted_at, pub_date DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_sidebar_popular ON posts(draft, deleted_at, views DESC, pub_date DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_updated_at ON posts(updated_at);
 CREATE INDEX IF NOT EXISTS idx_posts_deleted_at ON posts(deleted_at);
 

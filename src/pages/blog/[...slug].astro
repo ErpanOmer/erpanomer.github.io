@@ -1,17 +1,14 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getCollection, getEntry } from "astro:content";
+import { getEntry } from "astro:content";
 import getReadingTime from "reading-time";
 import Giscus from "@/components/Giscus.astro";
 
-import { getPost, syncPost, getAllPostStats } from "@/lib/db";
+import { getPopularPosts, getRecentPosts, syncPost } from "@/lib/db";
 import {
     formatPostDate,
     getDbPostBySlug,
-    mergeStaticAndDbPosts,
     normalizeDbPost,
-    normalizeStaticPost,
-    getDbPublishedPosts,
     parsePostDate,
 } from "@/lib/posts";
 
@@ -29,13 +26,9 @@ if (!slug) {
 }
 
 const db = Astro.locals.runtime.env.BLOG_DB;
-const visitorId = Astro.locals.visitorId || "anonymous";
-
 // --------------------------------------------------------
 // 2. Fetch Post Data (Static + D1)
 // --------------------------------------------------------
-const postEntry = await getEntry("blog", slug);
-
 let dbPostRow: any = null;
 try {
     dbPostRow = await getDbPostBySlug(db, slug, false);
@@ -43,18 +36,19 @@ try {
     console.error('Failed to fetch D1 post:', e);
 }
 
+const dbPost = dbPostRow ? normalizeDbPost(dbPostRow) : null;
+const shouldLoadStaticEntry = !dbPost || (!dbPost.htmlContent && !dbPost.content);
+const postEntry = shouldLoadStaticEntry ? await getEntry("blog", slug) : null;
+
 if (!postEntry && !dbPostRow) {
     return new Response(null, { status: 404, headers: { 'Location': '/404' } });
 }
 
-const dbPost = dbPostRow ? normalizeDbPost(dbPostRow) : null;
-
 // --------------------------------------------------------
 // 3. Lazy Sync & Legacy DB Check for Static Posts
 // --------------------------------------------------------
-if (postEntry) {
-    const legacyDbPost = await getPost(db, slug, visitorId);
-    if (!legacyDbPost) {
+if (postEntry && !dbPostRow) {
+    try {
         await syncPost(db, {
             slug,
             title: postEntry.data.title,
@@ -66,6 +60,8 @@ if (postEntry) {
             tags: postEntry.data.tags,
             draft: postEntry.data.draft ?? false,
         });
+    } catch (e) {
+        console.error("Failed to sync static post metadata:", e);
     }
 }
 
@@ -83,37 +79,21 @@ const tags = dbPost?.tags?.length ? dbPost.tags : (postEntry?.data.tags || []);
 // --------------------------------------------------------
 // 5. Sidebar Lists (Recent & Popular)
 // --------------------------------------------------------
-// Fetch all valid posts to prevent deleted markdown files (orphaned stats) from appearing
-const allStaticEntries = await getCollection("blog", ({ data }) => !data.draft);
-const allStaticPosts = allStaticEntries.map(normalizeStaticPost);
+const [recentPostsResult, popularPostsResult] = await Promise.allSettled([
+    getRecentPosts(db, 3, slug),
+    getPopularPosts(db, 3, slug),
+]);
 
-let allDbPostsList: any[] = [];
-try {
-    const dbRows = await getDbPublishedPosts(db, { limit: 200 });
-    allDbPostsList = dbRows.map(normalizeDbPost);
-} catch (e) {
-    console.error('Failed to fetch DB posts for sidebar:', e);
+if (recentPostsResult.status === "rejected") {
+    console.error("Failed to fetch recent posts for sidebar:", recentPostsResult.reason);
 }
 
-// Fetch stats to sort popular posts accurately
-let allStats: Record<string, { views: number; likes: number }> = {};
-try {
-    allStats = await getAllPostStats(db);
-} catch (e) {
-    console.error('Failed to fetch post stats for sidebar:', e);
+if (popularPostsResult.status === "rejected") {
+    console.error("Failed to fetch popular posts for sidebar:", popularPostsResult.reason);
 }
 
-const allValidPosts = mergeStaticAndDbPosts(allStaticPosts, allDbPostsList).map((post) => ({
-    ...post,
-    views: allStats[post.slug]?.views ?? post.views,
-    likes: allStats[post.slug]?.likes ?? post.likes,
-}));
-const otherValidPosts = allValidPosts.filter(p => p.slug !== slug);
-
-const recentPosts = otherValidPosts.slice(0, 3);
-const popularPosts = [...otherValidPosts]
-    .sort((a, b) => (allStats[b.slug]?.views || 0) - (allStats[a.slug]?.views || 0))
-    .slice(0, 3);
+const recentPosts = recentPostsResult.status === "fulfilled" ? recentPostsResult.value : [];
+const popularPosts = popularPostsResult.status === "fulfilled" ? popularPostsResult.value : [];
 
 // --------------------------------------------------------
 // 6. Content Rendering & Heading Extraction
