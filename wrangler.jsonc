@@ -11,6 +11,12 @@
         "binding": "ASSETS",
         "directory": "./dist"
     },
+    "services": [
+        {
+            "binding": "GET_FANS_WORKER",
+            "service": "get-fans-worker"
+        }
+    ],
     "kv_namespaces": [
         {
             "binding": "VIEWS",

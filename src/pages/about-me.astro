@@ -1,262 +1,276 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-
+import ContentPlatformGrid from "@/components/ContentPlatformGrid.astro";
 import Giscus from "@/components/Giscus.astro";
+import {
+    fetchSocialStats,
+    formatCompactCount,
+    formatExactCount,
+} from "@/lib/social-stats";
 
-const socials = [
+const socialStats = await fetchSocialStats({
+    transport: import.meta.env.PROD ? "service" : "public",
+    serviceBinding: import.meta.env.PROD
+        ? Astro.locals.runtime?.env.GET_FANS_WORKER
+        : null,
+});
+const hasSocialStats = socialStats.status !== "unavailable";
+
+const proofStats = [
     {
-        name: "GitHub",
-        url: "https://github.com/ErpanOmer",
-        icon: "M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z",
-        viewBox: "0 2 24 24",
-        color: "hover:text-white",
+        value: "10+",
+        exact: "十余年 Web 工程经验",
+        label: "年工程经验",
     },
     {
-        name: "掘金",
-        url: "https://juejin.cn/user/3878732754331096",
-        icon: "M17.5875 6.77268L21.8232 3.40505L17.5875 0.00748237L17.5837 0L13.3555 3.39757L17.5837 6.76894L17.5875 6.77268ZM17.5863 17.3955H17.59L28.5161 8.77432L25.5526 6.39453L17.59 12.6808H17.5863L17.5825 12.6845L9.61993 6.40201L6.66016 8.78181L17.5825 17.3992L17.5863 17.3955ZM17.5828 23.2891L17.5865 23.2854L32.2133 11.7456L35.1768 14.1254L28.5238 19.3752L17.5865 28L0.284376 14.3574L0 14.1291L2.95977 11.7531L17.5828 23.2891Z",
-        viewBox: "0 0 36 28",
-        color: "hover:text-blue-500",
+        value: hasSocialStats
+            ? formatCompactCount(socialStats.totals.view_count)
+            : "—",
+        exact: hasSocialStats
+            ? formatExactCount(socialStats.totals.view_count)
+            : "数据暂时不可用",
+        label: "全网阅读",
     },
     {
-        name: "邮箱",
-        url: "mailto:erpanomer@gmail.com",
-        icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
-        viewBox: "0 0 24 24",
-        color: "hover:text-emerald-400",
+        value: hasSocialStats
+            ? formatCompactCount(socialStats.totals.article_count)
+            : "—",
+        exact: hasSocialStats
+            ? formatExactCount(socialStats.totals.article_count)
+            : "数据暂时不可用",
+        label: "技术文章",
+    },
+    {
+        value: hasSocialStats
+            ? formatCompactCount(socialStats.totals.follower_count)
+            : "—",
+        exact: hasSocialStats
+            ? formatExactCount(socialStats.totals.follower_count)
+            : "数据暂时不可用",
+        label: "跨平台粉丝",
     },
 ];
 
-const identity = {
-    name: "ErpanOmer",
-    title: "Expert Web Frontend Engineer",
-    summary: `深耕 Web 领域十余载，在技术深度与广度上持续探索。作为资深前端专家，我不仅在 React/Vue 架构设计上有深厚造诣，更在 Node.js 服务端、<a href="https://www.electronjs.org/" target="_blank" rel="noopener noreferrer">Electron 桌面端开发</a> 以及 Shopify 独立站生态中积累了丰富的实战经验。我是 <a href="https://juejin.cn/user/3878732754331096" target="_blank" rel="noopener noreferrer">掘金平台的优秀技术博主</a>，致力于分享前沿观点与深度技术解析。`,
-    keywords: [
-        "Frontend Expert",
-        "Full-Stack Node.js",
-        "Electron Specialist",
-        "Shopify Architect",
-        "Juejin Author",
-    ],
-    stats: [
-        { label: "全网影响力", value: "100w+", desc: "文章总阅读量" },
-        { label: "掘金作者", value: "Lv. 6", desc: "优质技术内容分享" },
-        { label: "工程经验", value: "10+", desc: "年 Web 开发沉淀" },
-    ],
-};
+const expertise = [
+    {
+        index: "01",
+        title: "复杂前端架构",
+        description:
+            "面向大型 Web 应用设计可演进的 React / Vue / TypeScript 架构，兼顾性能、研发效率与长期维护成本。",
+        tags: ["React", "Vue", "TypeScript", "SSR", "Design System"],
+    },
+    {
+        index: "02",
+        title: "全栈与边缘系统",
+        description:
+            "使用 Node.js、Cloudflare Workers 与 D1 构建高性能服务，完成从界面到服务端的完整交付。",
+        tags: ["Node.js", "Cloudflare", "Workers", "D1", "API"],
+    },
+    {
+        index: "03",
+        title: "跨平台桌面应用",
+        description:
+            "覆盖 Electron 应用架构、原生能力集成、自动更新、CI/CD 与多平台发布链路。",
+        tags: ["Electron", "Desktop", "Auto Update", "CI/CD"],
+    },
+    {
+        index: "04",
+        title: "Shopify 商业交付",
+        description:
+            "提供主题、应用和 Headless 定制能力，让技术方案直接服务于体验、转化与业务增长。",
+        tags: ["Shopify", "Liquid", "Hydrogen", "Oxygen", "Commerce"],
+    },
+];
 ---
 
-<BaseLayout title="关于我">
-    <div class="max-w-4xl mx-auto px-6 py-16 sm:py-24">
-        <!-- Hero Section -->
-        <div class="flex flex-col md:flex-row md:items-start items-center gap-10 mb-12 md:mb-24">
-            <div class="relative group w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0">
-                <div
-                    class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500"
-                >
-                </div>
-                <div
-                    class="relative w-full h-full rounded-full overflow-hidden border-2 border-gh-border group-hover:border-indigo-500 transition-colors bg-gh-surface"
-                >
-                    <img
-                        src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_200,h_200/f_auto/q_auto/me_kknemi"
-                        width="200"
-                        height="200"
-                        class="w-full h-full object-cover"
-                        alt={identity.name}
-                    />
-                </div>
-            </div>
-
-            <div class="text-center md:text-left flex-1">
-                <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">
-                    {identity.name}
-                </h1>
-                <p class="text-lg text-indigo-400 font-medium mb-4">
-                    {identity.title}
-                </p>
-                <div
-                    class="flex flex-wrap justify-center md:justify-start gap-2 mb-6"
-                >
-                    {
-                        identity.keywords.map((word) => (
-                            <span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gh-muted">
-                                {word}
-                            </span>
-                        ))
-                    }
-                </div>
-
-                <!-- Card-based Stats Section -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gh-border/60 pt-10">
-                    {identity.stats.map((stat) => (
-                        <div class="group cursor-default relative overflow-hidden rounded-2xl bg-white/[0.02] border border-white/5 p-6 hover:border-indigo-500/50 hover:bg-white/[0.04] transition-all duration-500 shadow-sm hover:shadow-indigo-500/10">
-                            <!-- Background Glow -->
-                            <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors"></div>
-                            
-                            <div class="relative">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-sm font-bold text-gh-muted uppercase tracking-[0.2em]">
-                                        {stat.label}
-                                    </span>
-                                    <div class="w-1 h-1 rounded-full bg-indigo-500/30"></div>
-                                </div>
-                                
-                                <div class="text-3xl font-extrabold text-white mb-2 transition-all duration-300">
-                                    {stat.value}
-                                </div>
-                                
-                                <p class="text-xs text-gh-muted/80 leading-relaxed font-medium">
-                                    {stat.desc}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-
-        <!-- Bio Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-y-6 md:gap-12 items-start">
-            <div class="lg:col-span-2 space-y-12">
-                <section class="prose-blog">
-                    <h2 class="mt-0">🚀 核心实力与技术深度</h2>
-                    <p
-                        class="text-base md:text-lg leading-relaxed"
-                        set:html={identity.summary}
-                    />
-
-                    <h3>🏗️ 架构与生态</h3>
-                    <p class="text-base leading-relaxed">
-                        在十余年的职业生涯中，我见证并深度参与了前端生态的变革。目前我的技术核心聚焦于：
-                    </p>
-                    <ul>
-                        <li>
-                            <strong>UI 架构设计</strong>：精通 <strong
-                                >React</strong
-                            > 与 <strong>Vue</strong> 及其全家桶生态，擅长构建复杂的大型单页应用（SPA）与服务端渲染（SSR）方案。
-                        </li>
-                        <li>
-                            <strong>跨平台与服务端</strong>：深度应用 <strong
-                                >Node.js</strong
-                            > 构建高性能后端服务，并利用 <strong
-                                >Electron</strong
-                            > 开发多款商用级桌面应用。
-                        </li>
-                        <li>
-                            <strong>Shopify 独立站专家</strong
-                            >：国内首批深度定制 Shopify 独立站的工程师，精通
-                            Liquid、Hydrogen、Oxygen 以及全流程自动化部署。
-                        </li>
-                        <li>
-                            <strong>边缘计算</strong>：<strong
-                                >Cloudflare</strong
-                            > 生态的硬核玩家，擅长利用 Workers 与 D1 数据库构建高度敏捷的边缘服务。
-                        </li>
-                    </ul>
-
-                    <h3>✍️ 持续输出与行业影响力</h3>
-                    <p class="text-base leading-relaxed">
-                        作为 <strong
-                            ><a
-                                href="https://juejin.cn/user/3878732754331096"
-                                target="_blank"
-                                rel="noopener noreferrer">掘金Lv.6作者</a
-                            ></strong
-                        >，我始终坚持“凡有所悟，必有所得”的原则。目前的文章全网累计阅读量已突破
-                        <strong>100万+</strong
-                        >。通过输出深度内容，我不仅在回馈社区，也在不断重构自己的知识体系。
-                    </p>
-                </section>
-            </div>
-
-            <!-- Sidebar / Contacts -->
-            <div class="lg:col-span-1 space-y-6 lg:sticky lg:top-24">
-                <div
-                    class="bg-gh-surface rounded-2xl border border-gh-border p-5 shadow-xl shadow-black/20"
-                >
-                    <h3
-                        class="text-[10px] font-bold text-gh-muted uppercase tracking-[0.2em] mb-6 px-1 flex items-center gap-2"
-                    >
+<BaseLayout
+    title="关于我"
+    description="ErpanOmer，资深 Web 前端专家，专注复杂前端架构、Node.js、Electron、Shopify 与 Cloudflare 边缘系统。"
+>
+    <div class="mx-auto max-w-6xl px-5 py-12 sm:px-6 sm:py-16 lg:py-20">
+        <section class="relative overflow-hidden border-b border-gh-border pb-12 sm:pb-14">
+            <div class="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-indigo-500/[0.08] blur-3xl"></div>
+            <div class="relative grid items-center gap-8 sm:grid-cols-[auto_1fr] sm:gap-10 lg:gap-12">
+                <div class="mx-auto sm:mx-0">
+                    <div class="group relative h-32 w-32 sm:h-36 sm:w-36">
+                        <div class="absolute -inset-2 rounded-full bg-gradient-to-br from-indigo-500/35 to-purple-500/20 opacity-70 blur-lg transition-opacity duration-300 group-hover:opacity-100"></div>
+                        <img
+                            src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_320,h_320/f_auto/q_auto/me_kknemi"
+                            width="320"
+                            height="320"
+                            class="relative h-full w-full rounded-full border-2 border-gh-border object-cover transition-colors duration-300 group-hover:border-indigo-400"
+                            alt="ErpanOmer"
+                        />
                         <span
-                            class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"
+                            class="absolute bottom-2 right-2 h-4 w-4 rounded-full border-[3px] border-gh-bg bg-emerald-400"
+                            aria-label="在线"
                         ></span>
-                        联系我 / Connect
-                    </h3>
-                    <div class="space-y-3">
-                        {
-                            socials.map((social) => (
-                                <a
-                                    href={social.url}
-                                    target="_blank"
-                                    class={`flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-gh-border transition-all group ${social.color}`}
-                                >
-                                    <div class="w-8 h-8 flex items-center justify-center rounded-md bg-gh-bg group-hover:scale-110 transition-transform">
-                                        <svg
-                                            class="w-5 h-5 opacity-70 group-hover:opacity-100"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox={social.viewBox}
-                                        >
-                                            {social.name === "掘金" ||
-                                            social.name === "GitHub" ? (
-                                                <path
-                                                    fill="currentColor"
-                                                    fill-rule="evenodd"
-                                                    clip-rule="evenodd"
-                                                    d={social.icon}
-                                                />
-                                            ) : (
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d={social.icon}
-                                                />
-                                            )}
-                                        </svg>
-                                    </div>
-                                    <span class="text-sm font-medium tracking-wide">
-                                        {social.name}
-                                    </span>
-                                    <svg
-                                        class="w-3.5 h-3.5 ml-auto opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M14 5l7 7m0 0l-7 7m7-7H3"
-                                        />
-                                    </svg>
-                                </a>
-                            ))
-                        }
                     </div>
                 </div>
-                <div class="flex items-center flex-col justify-center">
-                    <img
-                        src="https://skillicons.dev/icons?i=html,css,js,jquery,react,remix,astro,vue,nodejs,py,electron,cloudflare,workers,docker,linux,ai&perline=5"
-                        loading="lazy"
-                        class="w-[80vw] md:w-full"
-                        alt="developer skills"
-                    />
-                </div>
 
-                <div
-                    class="p-6 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-2xl border border-indigo-500/10"
-                >
-                    <p
-                        class="text-sm text-gh-muted leading-relaxed italic text-center"
-                    >
-                        "凡是能被自动化的，都应该被自动化。"
+                <div class="text-center sm:text-left">
+                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
+                        ErpanOmer · Frontend Expert
                     </p>
+                    <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                        资深前端专家
+                    </h1>
+                    <p class="mt-2 text-lg font-semibold text-gh-text sm:text-xl">
+                        专注复杂系统的架构与交付
+                    </p>
+                    <p class="mt-4 max-w-3xl text-sm leading-7 text-gh-muted sm:text-base">
+                        十余年 Web 工程经验，长期实践前端架构、Node.js 服务、Electron
+                        桌面应用、Shopify 商业项目与 Cloudflare 边缘系统。擅长把复杂需求收敛为稳定、清晰、可持续演进的产品。
+                    </p>
+
+                    <div class="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
+                        {["React / Vue", "TypeScript", "Node.js", "Electron", "Shopify", "Cloudflare"].map((skill) => (
+                            <span class="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-gh-text">
+                                {skill}
+                            </span>
+                        ))}
+                    </div>
+
+                    <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:justify-start">
+                        <a
+                            href="https://github.com/ErpanOmer"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-gh-bg transition-all hover:-translate-y-0.5 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg"
+                        >
+                            GitHub <span aria-hidden="true">↗</span>
+                        </a>
+                        <a
+                            href="mailto:erpanomer@gmail.com"
+                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-gh-border bg-gh-surface px-5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:border-indigo-400/50 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg"
+                        >
+                            联系我
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <Giscus />
+        </section>
+
+        <dl class="mt-6 grid grid-cols-2 overflow-hidden rounded-xl border border-gh-border bg-gh-surface sm:grid-cols-4">
+            {
+                proofStats.map((stat) => (
+                    <div class="border-b border-r border-gh-border px-5 py-5 even:border-r-0 [&:nth-last-child(-n+2)]:border-b-0 sm:border-b-0 sm:px-6 sm:py-6 sm:[&:nth-child(2)]:border-r sm:[&:last-child]:border-r-0">
+                        <dd
+                            class="text-2xl font-extrabold tracking-tight tabular-nums text-white sm:text-3xl"
+                            title={stat.exact}
+                            aria-label={`${stat.label}：${stat.exact}`}
+                        >
+                            {stat.value}
+                        </dd>
+                        <dt class="mt-1.5 text-xs font-semibold text-gh-muted sm:text-sm">
+                            {stat.label}
+                        </dt>
+                    </div>
+                ))
+            }
+        </dl>
+
+        <section class="py-16 sm:py-20" aria-labelledby="expertise-title">
+            <div class="mb-7 sm:flex sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
+                        Core Expertise
+                    </p>
+                    <h2
+                        id="expertise-title"
+                        class="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                    >
+                        核心能力
+                    </h2>
+                </div>
+                <p class="mt-3 max-w-xl text-sm leading-6 text-gh-muted sm:mt-0 sm:text-right">
+                    从浏览器到服务端，从桌面软件到商业独立站。
+                </p>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                {
+                    expertise.map((item) => (
+                        <div class="group relative">
+                            <div class="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 blur transition duration-500 group-hover:opacity-15"></div>
+                            <article class="relative h-full rounded-xl border border-gh-border bg-gh-surface p-5 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-gh-muted sm:p-6">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-mono text-xs font-bold text-indigo-400">
+                                        {item.index}
+                                    </span>
+                                    <span class="h-px w-10 bg-gradient-to-r from-indigo-500/70 to-transparent"></span>
+                                </div>
+                                <h3 class="mt-4 text-xl font-bold text-white">
+                                    {item.title}
+                                </h3>
+                                <p class="mt-2 text-sm leading-7 text-gh-muted">
+                                    {item.description}
+                                </p>
+                                <div class="mt-4 flex flex-wrap gap-2">
+                                    {item.tags.map((tag) => (
+                                        <span class="rounded-md bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-gh-text">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </article>
+                        </div>
+                    ))
+                }
+            </div>
+        </section>
+
+        <section class="border-t border-gh-border py-16 sm:py-20" aria-labelledby="platforms-title">
+            <div class="mb-7 sm:flex sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
+                        Publishing Network
+                    </p>
+                    <h2
+                        id="platforms-title"
+                        class="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                    >
+                        我的内容矩阵
+                    </h2>
+                </div>
+                <p class="mt-3 max-w-xl text-sm leading-6 text-gh-muted sm:mt-0 sm:text-right">
+                    跨平台持续创作与技术分享。
+                </p>
+            </div>
+
+            <ContentPlatformGrid socialStats={socialStats} />
+        </section>
+
+        <section class="flex flex-col gap-5 rounded-xl border border-gh-border bg-gh-surface p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div>
+                <h2 class="text-xl font-bold text-white sm:text-2xl">合作与交流</h2>
+                <p class="mt-2 text-sm leading-6 text-gh-muted">
+                    大型前端、Electron、Shopify 或 Cloudflare 边缘架构相关项目，欢迎直接联系。
+                </p>
+            </div>
+            <a
+                href="mailto:erpanomer@gmail.com"
+                class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-indigo-500 px-5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg"
+            >
+                erpanomer@gmail.com
+            </a>
+        </section>
+
+        <section class="pt-16 sm:pt-20" aria-labelledby="comments-title">
+            <div class="text-center">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
+                    Discussion
+                </p>
+                <h2
+                    id="comments-title"
+                    class="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                >
+                    留言与交流
+                </h2>
+            </div>
+            <div class="mt-7 rounded-xl border border-gh-border bg-gh-surface/40 p-4 sm:p-6">
+                <Giscus />
+            </div>
+        </section>
     </div>
 </BaseLayout>

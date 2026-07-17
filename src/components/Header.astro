@@ -22,7 +22,10 @@ const menus = [
     <nav
         class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16"
     >
-        <a href="/" class="flex items-center gap-2 sm:gap-3 group">
+        <a
+            href="/"
+            class="flex items-center gap-2 sm:gap-3 group rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg"
+        >
             <div class="relative w-8 h-8 sm:w-10 sm:h-10">
                 <img
                     src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_100,h_100/f_auto/q_auto/me_kknemi"
@@ -50,7 +53,7 @@ const menus = [
                     menus.map((menu) => (
                         <a
                             href={menu.href}
-                            class="relative px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all"
+                            class="relative px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                         >
                             {menu.name}
                             {menu.isNew && (
@@ -69,8 +72,11 @@ const menus = [
                 id="nav-dropdown"
             >
                 <button
+                    type="button"
                     id="nav-dropdown-btn"
-                    class="px-2.5 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all flex items-center gap-1 active:scale-95"
+                    aria-expanded="false"
+                    aria-controls="nav-dropdown-content"
+                    class="min-h-10 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all flex items-center gap-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                 >
                     导航
                     <svg
@@ -93,7 +99,7 @@ const menus = [
                         menus.map((menu) => (
                             <a
                                 href={menu.href}
-                                class="flex items-center justify-between px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-gh-border/50"
+                                class="flex items-center justify-between px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-gh-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400"
                             >
                                 {menu.name}
                                 {menu.isNew && (
@@ -110,9 +116,10 @@ const menus = [
             <div class="w-0.5 h-4 sm:h-4 bg-gh-border mx-2"></div>
             <a
                 href="https://juejin.cn/user/3878732754331096"
-                class="p-1 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-gh-surface transition-all"
+                class="min-w-10 min-h-10 p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-gh-surface transition-all flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                 title="掘金"
                 target="_blank"
+                rel="noopener noreferrer"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -129,9 +136,10 @@ const menus = [
             </a>
             <a
                 href="https://github.com/ErpanOmer"
-                class="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gh-surface transition-all"
+                class="min-w-10 min-h-10 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gh-surface transition-all flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                 title="GitHub"
                 target="_blank"
+                rel="noopener noreferrer"
             >
                 <svg
                     class="w-7 h-7 sm:w-8 sm:h-8"
@@ -149,41 +157,48 @@ const menus = [
 
 <script>
     function initNavDropdown() {
-        const btn = document.getElementById("nav-dropdown-btn");
+        const btn = document.getElementById(
+            "nav-dropdown-btn",
+        ) as HTMLButtonElement | null;
         const content = document.getElementById("nav-dropdown-content");
         const icon = document.getElementById("nav-dropdown-icon");
 
-        if (!btn || !content || !icon) return;
+        if (!btn || !content || !icon || btn.dataset.initialized === "true") {
+            return;
+        }
+        btn.dataset.initialized = "true";
 
-        // Toggle dropdown
+        const setOpen = (open: boolean) => {
+            content.classList.toggle("hidden", !open);
+            icon.classList.toggle("rotate-180", open);
+            btn.setAttribute("aria-expanded", String(open));
+        };
+
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const isHidden = content.classList.contains("hidden");
-
-            if (isHidden) {
-                content.classList.remove("hidden");
-                icon.classList.add("rotate-180");
-            } else {
-                content.classList.add("hidden");
-                icon.classList.remove("rotate-180");
-            }
+            setOpen(btn.getAttribute("aria-expanded") !== "true");
         });
 
-        // Close on click outside
         document.addEventListener("click", (e) => {
             if (
                 !content.contains(e.target as Node) &&
                 !btn.contains(e.target as Node)
             ) {
-                content.classList.add("hidden");
-                icon.classList.remove("rotate-180");
+                setOpen(false);
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (
+                e.key === "Escape" &&
+                btn.getAttribute("aria-expanded") === "true"
+            ) {
+                setOpen(false);
+                btn.focus();
             }
         });
     }
 
-    // Initialize on first load
     initNavDropdown();
-
-    // Re-initialize after Astro view transitions
     document.addEventListener("astro:page-load", initNavDropdown);
 </script>

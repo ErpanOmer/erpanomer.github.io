@@ -1,0 +1,298 @@
+---
+import SocialPlatformLogo from "@/components/SocialPlatformLogo.astro";
+import { SOCIAL_PLATFORM_CONFIGS } from "@/data/social-platforms";
+import {
+    findPlatformStats,
+    formatCompactCount,
+    formatExactCount,
+    sortSocialPlatformsByViews,
+    type SocialMetric,
+    type SocialStatsResult,
+} from "@/lib/social-stats";
+
+interface Props {
+    socialStats: SocialStatsResult;
+}
+
+const { socialStats } = Astro.props;
+const isUnavailable = socialStats.status === "unavailable";
+
+const metricLabels: Record<SocialMetric, string> = {
+    article_count: "文章",
+    follower_count: "粉丝",
+    view_count: "阅读",
+    favorite_count: "收藏",
+    like_count: "点赞",
+};
+
+const primaryMetricOrder: SocialMetric[] = [
+    "view_count",
+    "follower_count",
+    "article_count",
+];
+const secondaryMetricOrder: SocialMetric[] = ["like_count", "favorite_count"];
+const filledLogoPlatforms = new Set([
+    "csdn",
+    "segmentfault",
+    "zhihu",
+    "51cto",
+    "wechat",
+    "juejin",
+    "cnblogs",
+]);
+const enlargedLogoPlatforms = new Set(["juejin"]);
+const platformsByViews = sortSocialPlatformsByViews(
+    SOCIAL_PLATFORM_CONFIGS,
+    socialStats,
+);
+const wechatPlatform = platformsByViews.find(
+    (platform) => platform.id === "wechat",
+);
+const sortedPlatformConfigs = [
+    ...(wechatPlatform ? [wechatPlatform] : []),
+    ...platformsByViews.filter((platform) => platform.id !== "wechat"),
+];
+---
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+        sortedPlatformConfigs.map((platform) => {
+            const stats = findPlatformStats(socialStats, platform.id);
+            const hasMetrics = Boolean(stats?.availableMetrics.length);
+            const primaryMetrics = primaryMetricOrder.filter((metric) =>
+                stats?.availableMetrics.includes(metric),
+            );
+            const secondaryMetrics = secondaryMetricOrder.filter((metric) =>
+                stats?.availableMetrics.includes(metric),
+            );
+            const featuredMetric =
+                primaryMetrics[0] ?? secondaryMetrics[0] ?? null;
+            const detailMetrics = primaryMetrics
+                .filter((metric) => metric !== featuredMetric)
+                .slice(0, 2);
+            const footerMetrics = secondaryMetrics.filter(
+                (metric) => metric !== featuredMetric,
+            );
+            const profileUrl = platform.linkEnabled
+                ? platform.id === "wechat"
+                    ? platform.profileUrl
+                    : stats?.accountUrl ?? platform.profileUrl
+                : null;
+            const usesStaticEmptyState =
+                platform.id === "wechat" || platform.id === "cnblogs";
+            const unavailableLabel =
+                isUnavailable && !usesStaticEmptyState
+                    ? "数据暂时不可用"
+                    : platform.emptyTitle ?? "暂不可用";
+            const unavailableDescription =
+                platform.id === "wechat"
+                    ? "扫码关注，点击卡片查看内容"
+                    : platform.emptyDescription ?? null;
+
+            return (
+                <div
+                    data-platform-card={platform.id}
+                    class:list={[
+                        "group relative h-full",
+                        profileUrl && "cursor-pointer",
+                    ]}
+                >
+                    <div
+                        class="absolute -inset-0.5 rounded-xl opacity-0 blur transition duration-500 group-hover:opacity-20 group-focus-within:opacity-20"
+                        style={`background: linear-gradient(110deg, ${platform.brandColor}, #8b5cf6);`}
+                    />
+
+                    <article class="relative flex h-full min-h-[13.5rem] flex-col overflow-hidden rounded-xl border border-gh-border bg-gh-surface p-5 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-gh-muted focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-400/40 sm:p-6">
+                        <div
+                            class="pointer-events-none absolute -right-20 -top-24 h-48 w-48 rounded-full opacity-[0.08] blur-3xl transition-opacity duration-500 group-hover:opacity-[0.14]"
+                            style={`background-color: ${platform.brandColor};`}
+                        />
+                        <div
+                            class="absolute inset-x-0 top-0 h-px opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+                            style={`background: linear-gradient(90deg, transparent, ${platform.brandColor}, transparent)`}
+                        />
+
+                        {profileUrl && (
+                            <a
+                                href={profileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="absolute inset-0 z-10 rounded-xl focus:outline-none"
+                                aria-label={`访问我的${platform.name}主页`}
+                            >
+                                <span class="sr-only">访问主页</span>
+                            </a>
+                        )}
+
+                        <div class="relative flex items-center gap-4">
+                            <SocialPlatformLogo
+                                logo={platform.logo}
+                                logoText={platform.logoText}
+                                brandColor={platform.brandColor}
+                                preserveOriginalColor={
+                                    platform.id === "51cto" ||
+                                    platform.id === "csdn"
+                                }
+                                fillContainer={filledLogoPlatforms.has(
+                                    platform.id,
+                                )}
+                                enlargeContent={enlargedLogoPlatforms.has(
+                                    platform.id,
+                                )}
+                                alwaysColor
+                            />
+                            <div class="min-w-0 flex-1">
+                                <h4 class="truncate text-lg font-bold text-white transition-colors group-hover:text-indigo-100">
+                                    {platform.name}
+                                </h4>
+                                <p class="mt-0.5 truncate text-sm text-gh-muted">
+                                    @{platform.displayHandle}
+                                </p>
+                            </div>
+                            {profileUrl && (
+                                <svg
+                                    class="h-5 w-5 shrink-0 text-gh-muted transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-indigo-300"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M14 5h5v5m0-5L10 14M5 8v11h11v-5"
+                                    />
+                                </svg>
+                            )}
+                        </div>
+
+                        {hasMetrics && stats && featuredMetric ? (
+                            <>
+                                <div class="relative mt-6 flex items-end justify-between gap-5">
+                                    <dl class="min-w-0">
+                                        <dt class="text-xs font-medium text-gh-muted">
+                                            {metricLabels[featuredMetric]}
+                                        </dt>
+                                        <dd
+                                            class="mt-1 text-3xl font-extrabold tracking-tight tabular-nums text-white"
+                                            title={formatExactCount(stats.stats[featuredMetric])}
+                                            aria-label={`${metricLabels[featuredMetric]}：${formatExactCount(stats.stats[featuredMetric])}`}
+                                        >
+                                            {formatCompactCount(stats.stats[featuredMetric])}
+                                        </dd>
+                                    </dl>
+
+                                    {detailMetrics.length > 0 && (
+                                        <dl class="grid shrink-0 grid-cols-2 gap-x-6">
+                                            {detailMetrics.map((metric) => (
+                                                <div>
+                                                    <dt class="text-xs font-medium text-gh-muted">
+                                                        {metricLabels[metric]}
+                                                    </dt>
+                                                    <dd
+                                                        class="mt-1 text-lg font-bold tabular-nums text-gh-text"
+                                                        title={formatExactCount(stats.stats[metric])}
+                                                        aria-label={`${metricLabels[metric]}：${formatExactCount(stats.stats[metric])}`}
+                                                    >
+                                                        {formatCompactCount(stats.stats[metric])}
+                                                    </dd>
+                                                </div>
+                                            ))}
+                                        </dl>
+                                    )}
+                                </div>
+
+                                <div class="relative mt-auto flex items-center justify-between gap-4 border-t border-gh-border/70 pt-4">
+                                    {footerMetrics.length > 0 ? (
+                                        <dl class="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                            {footerMetrics.map((metric) => (
+                                                <div class="flex items-baseline gap-1.5">
+                                                    <dt class="text-gh-muted">
+                                                        {metricLabels[metric]}
+                                                    </dt>
+                                                    <dd
+                                                        class="font-semibold tabular-nums text-gh-text"
+                                                        title={formatExactCount(stats.stats[metric])}
+                                                    >
+                                                        {formatCompactCount(stats.stats[metric])}
+                                                    </dd>
+                                                </div>
+                                            ))}
+                                        </dl>
+                                    ) : (
+                                        <span />
+                                    )}
+                                    {profileUrl && (
+                                        <span class="shrink-0 text-xs font-semibold text-indigo-300">
+                                            主页 <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+                                        </span>
+                                    )}
+                                </div>
+                            </>
+                        ) : platform.id === "wechat" ? (
+                            <div class="relative mt-4 flex flex-1 items-center pr-[7.25rem]">
+                                <div class="flex min-w-0 items-start gap-3">
+                                    <span
+                                        class="mt-2 h-2 w-2 shrink-0 rounded-full"
+                                        style={`background-color: ${platform.brandColor}; box-shadow: 0 0 12px ${platform.brandColor};`}
+                                    />
+                                    <div>
+                                        <p class="text-base font-semibold text-gh-text">
+                                            {unavailableLabel}
+                                        </p>
+                                        <p class="mt-1.5 text-xs leading-5 text-gh-muted">
+                                            {unavailableDescription}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div
+                                    class="absolute right-0 top-1/2 -translate-y-1/2 rounded-xl bg-white p-1 shadow-lg shadow-black/20"
+                                    aria-hidden="true"
+                                >
+                                    <img
+                                        src="/images/wechat-qr.svg"
+                                        alt=""
+                                        width="100"
+                                        height="100"
+                                        loading="lazy"
+                                        class="h-[100px] w-[100px] rounded-lg object-contain"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div class="relative mt-6 flex flex-1 items-center">
+                                <div class="flex items-start gap-3">
+                                    <span
+                                        class="mt-2 h-2 w-2 shrink-0 rounded-full"
+                                        style={`background-color: ${platform.brandColor}; box-shadow: 0 0 12px ${platform.brandColor};`}
+                                    />
+                                    <div>
+                                        <p class="text-base font-semibold text-gh-text">
+                                            {unavailableLabel}
+                                        </p>
+                                        {unavailableDescription && (
+                                            <p class="mt-1.5 text-xs leading-5 text-gh-muted">
+                                                {unavailableDescription}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {(!hasMetrics || !featuredMetric) &&
+                            profileUrl &&
+                            platform.id !== "wechat" && (
+                            <div class="relative mt-auto border-t border-gh-border/70 pt-4 text-right">
+                                <span class="text-xs font-semibold text-indigo-300">
+                                    主页 <span class="inline-block transition-transform group-hover:translate-x-1">→</span>
+                                </span>
+                            </div>
+                        )}
+                    </article>
+                </div>
+            );
+        })
+    }
+</div>

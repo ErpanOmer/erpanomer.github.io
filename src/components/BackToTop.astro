@@ -1,44 +1,325 @@
 ---
+import { SOCIAL_PLATFORM_CONFIG_MAP } from "@/data/social-platforms";
 
+const WECHAT_CONFIG = SOCIAL_PLATFORM_CONFIG_MAP.wechat;
+const WECHAT_PROFILE_URL = WECHAT_CONFIG.profileUrl ?? "#";
+const WECHAT_LOGO_URL = WECHAT_CONFIG.logo?.src ?? "";
 ---
 
-<button
-    id="back-to-top"
-    class="fixed bottom-16 right-4 md:right-8 z-40 p-3 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg opacity-0 invisible translate-y-4 transition-all duration-300 hover:scale-110 hover:shadow-xl"
-    aria-label="回到顶部"
+<aside
+    id="floating-tools"
+    class="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 md:bottom-8 md:right-8"
+    aria-label="页面快捷入口"
+    data-wechat-open="false"
 >
-    <svg
-        class="w-5 h-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        stroke-width="2"
+    <!-- 桌面端：完整二维码卡片保持常驻。 -->
+    <section
+        class="wechat-qr-card hidden w-52 rounded-2xl border border-gh-border bg-gh-surface/95 p-4 shadow-2xl shadow-black/40 backdrop-blur-xl md:block"
+        aria-labelledby="wechat-desktop-title"
     >
-        <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-    </svg>
-</button>
+        <div class="mb-3">
+            <h2 id="wechat-desktop-title" class="text-sm font-bold text-white">
+                前端技术官
+            </h2>
+            <p class="mt-0.5 text-xs text-gh-muted">微信扫码关注公众号</p>
+        </div>
+
+        <div class="rounded-xl bg-white p-2">
+            <img
+                src="/images/wechat-qr.svg"
+                alt="前端技术官微信公众号二维码"
+                width="176"
+                height="176"
+                loading="lazy"
+                class="aspect-square w-full rounded-lg object-contain"
+            />
+        </div>
+
+        <a
+            href={WECHAT_PROFILE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-3 flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-green-500/25 bg-green-500/10 px-3 text-xs font-semibold text-green-300 transition-colors hover:border-green-400/50 hover:bg-green-500/15 hover:text-green-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+        >
+            查看公众号内容 <span aria-hidden="true">↗</span>
+        </a>
+    </section>
+
+    <!-- 移动端：点击微信按钮后显示，不参与页面常驻占位。 -->
+    <section
+        id="wechat-mobile-panel"
+        class="wechat-mobile-panel pointer-events-none invisible absolute bottom-[calc(100%+0.75rem)] right-0 w-72 max-w-[calc(100vw-2rem)] translate-y-2 scale-[0.98] rounded-2xl border border-gh-border bg-gh-surface/98 p-4 opacity-0 shadow-2xl shadow-black/50 backdrop-blur-xl transition-all duration-200 md:hidden"
+        role="dialog"
+        aria-labelledby="wechat-mobile-title"
+        aria-hidden="true"
+    >
+        <div class="mb-3 flex items-start justify-between gap-4">
+            <div>
+                <h2 id="wechat-mobile-title" class="text-sm font-bold text-white">
+                    前端技术官
+                </h2>
+                <p class="mt-0.5 text-xs text-gh-muted">微信扫码关注公众号</p>
+            </div>
+            <button
+                id="wechat-mobile-close"
+                type="button"
+                class="-mr-1 -mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gh-muted transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+                aria-label="关闭微信公众号二维码"
+            >
+                <svg
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="rounded-xl bg-white p-2">
+            <img
+                src="/images/wechat-qr.svg"
+                alt="前端技术官微信公众号二维码"
+                width="176"
+                height="176"
+                loading="lazy"
+                class="mx-auto h-44 w-44 rounded-lg object-contain"
+            />
+        </div>
+
+        <a
+            href={WECHAT_PROFILE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-3 flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-green-500/25 bg-green-500/10 px-3 text-xs font-semibold text-green-300 transition-colors hover:border-green-400/50 hover:bg-green-500/15 hover:text-green-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
+        >
+            查看公众号内容 <span aria-hidden="true">↗</span>
+        </a>
+    </section>
+
+    <button
+        id="wechat-mobile-toggle"
+        type="button"
+        class="wechat-mobile-toggle flex h-11 w-11 items-center justify-center rounded-full border border-green-500/40 bg-gh-surface text-white shadow-lg shadow-green-500/10 transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg md:hidden"
+        aria-label="打开微信公众号二维码"
+        aria-expanded="false"
+        aria-controls="wechat-mobile-panel"
+    >
+        <span
+            class="block h-[26px] w-[26px]"
+            style={`background-color: ${WECHAT_CONFIG.brandColor}; -webkit-mask: url("${WECHAT_LOGO_URL}") center / contain no-repeat; mask: url("${WECHAT_LOGO_URL}") center / contain no-repeat;`}
+            aria-hidden="true"
+        ></span>
+    </button>
+
+    <button
+        id="back-to-top"
+        type="button"
+        class="invisible translate-y-4 rounded-full bg-zinc-900 p-3 text-white opacity-0 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg dark:bg-white dark:text-zinc-900"
+        aria-label="回到顶部"
+    >
+        <svg
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M5 10l7-7m0 0l7 7m-7-7v18"
+            ></path>
+        </svg>
+    </button>
+</aside>
+
+<style>
+    .wechat-qr-card {
+        animation: wechat-breathe 3.2s ease-in-out infinite;
+        will-change: transform, box-shadow;
+    }
+
+    .wechat-mobile-toggle {
+        animation: wechat-mobile-pulse 3.2s ease-in-out infinite;
+    }
+
+    #floating-tools[data-wechat-open="true"] .wechat-mobile-panel {
+        pointer-events: auto;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    @keyframes wechat-breathe {
+        0%,
+        100% {
+            transform: translateY(0);
+            box-shadow:
+                0 18px 45px rgba(0, 0, 0, 0.34),
+                0 0 0 0 rgba(7, 193, 96, 0.12);
+        }
+        50% {
+            transform: translateY(-5px);
+            box-shadow:
+                0 18px 48px rgba(0, 0, 0, 0.38),
+                0 0 0 7px rgba(7, 193, 96, 0);
+        }
+    }
+
+    @keyframes wechat-mobile-pulse {
+        0%,
+        100% {
+            box-shadow:
+                0 8px 22px rgba(0, 0, 0, 0.3),
+                0 0 0 0 rgba(7, 193, 96, 0.14);
+        }
+        50% {
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, 0.34),
+                0 0 0 6px rgba(7, 193, 96, 0);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .wechat-qr-card,
+        .wechat-mobile-toggle {
+            animation: none;
+        }
+
+        .wechat-mobile-panel {
+            transition-duration: 0.01ms;
+        }
+    }
+</style>
 
 <script>
-    const btn = document.getElementById("back-to-top");
+    type FloatingToolsWindow = Window & {
+        __floatingToolsCleanup?: () => void;
+    };
 
-    if (btn) {
-        // Show/hide on scroll
-        window.addEventListener("scroll", () => {
-            if (window.scrollY > 300) {
-                btn.classList.remove("opacity-0", "invisible", "translate-y-4");
-                btn.classList.add("opacity-100", "visible", "translate-y-0");
-            } else {
-                btn.classList.remove("opacity-100", "visible", "translate-y-0");
-                btn.classList.add("opacity-0", "invisible", "translate-y-4");
+    function initFloatingTools() {
+        const floatingTools = document.getElementById("floating-tools");
+        const backToTop = document.getElementById("back-to-top");
+        const wechatToggle = document.getElementById(
+            "wechat-mobile-toggle",
+        ) as HTMLButtonElement | null;
+        const wechatClose = document.getElementById(
+            "wechat-mobile-close",
+        ) as HTMLButtonElement | null;
+        const wechatPanel = document.getElementById("wechat-mobile-panel");
+
+        if (
+            !floatingTools ||
+            !backToTop ||
+            !wechatToggle ||
+            !wechatClose ||
+            !wechatPanel
+        ) {
+            return;
+        }
+
+        const floatingWindow = window as FloatingToolsWindow;
+        floatingWindow.__floatingToolsCleanup?.();
+
+        const controller = new AbortController();
+        const { signal } = controller;
+        floatingWindow.__floatingToolsCleanup = () => controller.abort();
+
+        const setWechatOpen = (open: boolean, restoreFocus = false) => {
+            floatingTools.dataset.wechatOpen = String(open);
+            wechatToggle.setAttribute("aria-expanded", String(open));
+            wechatPanel.setAttribute("aria-hidden", String(!open));
+
+            if (!open && restoreFocus) {
+                wechatToggle.focus();
             }
-        });
+        };
 
-        // Scroll to top on click
-        btn.addEventListener("click", () => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
+        const syncBackToTop = () => {
+            const visible = window.scrollY > 300;
+            backToTop.classList.toggle("opacity-0", !visible);
+            backToTop.classList.toggle("invisible", !visible);
+            backToTop.classList.toggle("translate-y-4", !visible);
+            backToTop.classList.toggle("opacity-100", visible);
+            backToTop.classList.toggle("visible", visible);
+            backToTop.classList.toggle("translate-y-0", visible);
+        };
+
+        wechatToggle.addEventListener(
+            "click",
+            (event) => {
+                event.stopPropagation();
+                setWechatOpen(
+                    floatingTools.dataset.wechatOpen !== "true",
+                );
+            },
+            { signal },
+        );
+
+        wechatClose.addEventListener(
+            "click",
+            () => setWechatOpen(false, true),
+            { signal },
+        );
+
+        document.addEventListener(
+            "click",
+            (event) => {
+                if (
+                    floatingTools.dataset.wechatOpen === "true" &&
+                    !floatingTools.contains(event.target as Node)
+                ) {
+                    setWechatOpen(false);
+                }
+            },
+            { signal },
+        );
+
+        document.addEventListener(
+            "keydown",
+            (event) => {
+                if (
+                    event.key === "Escape" &&
+                    floatingTools.dataset.wechatOpen === "true"
+                ) {
+                    setWechatOpen(false, true);
+                }
+            },
+            { signal },
+        );
+
+        const desktopMedia = window.matchMedia("(min-width: 768px)");
+        desktopMedia.addEventListener(
+            "change",
+            () => {
+                if (desktopMedia.matches) setWechatOpen(false);
+            },
+            { signal },
+        );
+
+        window.addEventListener("scroll", syncBackToTop, {
+            passive: true,
+            signal,
         });
+        backToTop.addEventListener(
+            "click",
+            () => window.scrollTo({ top: 0, behavior: "smooth" }),
+            { signal },
+        );
+
+        setWechatOpen(false);
+        syncBackToTop();
     }
+
+    initFloatingTools();
+    document.addEventListener("astro:page-load", initFloatingTools);
 </script>

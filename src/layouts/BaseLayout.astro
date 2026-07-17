@@ -3,6 +3,7 @@ import { Font } from "astro:assets";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import BackToTop from "@/components/BackToTop.astro";
+import { SOCIAL_PROFILE_URLS } from "@/data/social-platforms";
 import me from "@/images/me.jpg";
 import "@/app.css";
 
@@ -156,7 +157,7 @@ const viewCount = Astro.locals.viewCount || 0;
             "https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_500,h_500/f_auto/q_auto/me_kknemi",
           sameAs: [
             "https://github.com/ErpanOmer",
-            "https://juejin.cn/user/3878732754331096",
+            ...SOCIAL_PROFILE_URLS,
           ],
           jobTitle: "Web Frontend Engineer",
           description: description,
