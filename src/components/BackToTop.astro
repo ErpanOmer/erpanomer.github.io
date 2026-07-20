@@ -46,9 +46,17 @@ const WECHAT_LOGO_URL = WECHAT_CONFIG.logo?.src ?? "";
     </section>
 
     <!-- 移动端：点击微信按钮后显示，不参与页面常驻占位。 -->
+    <button
+        id="wechat-mobile-backdrop"
+        type="button"
+        class="wechat-mobile-backdrop pointer-events-none invisible fixed inset-0 bg-black/65 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 md:hidden"
+        aria-label="关闭微信公众号二维码"
+        tabindex="-1"
+    ></button>
+
     <section
         id="wechat-mobile-panel"
-        class="wechat-mobile-panel pointer-events-none invisible absolute bottom-[calc(100%+0.75rem)] right-0 w-72 max-w-[calc(100vw-2rem)] translate-y-2 scale-[0.98] rounded-2xl border border-gh-border bg-gh-surface/98 p-4 opacity-0 shadow-2xl shadow-black/50 backdrop-blur-xl transition-all duration-200 md:hidden"
+        class="wechat-mobile-panel pointer-events-none invisible absolute bottom-[calc(100%+0.75rem)] right-0 z-10 w-72 max-w-[calc(100vw-2rem)] translate-y-2 scale-[0.98] rounded-2xl border border-gh-border bg-gh-surface p-4 opacity-0 shadow-2xl shadow-black/70 transition-all duration-200 md:hidden"
         role="dialog"
         aria-labelledby="wechat-mobile-title"
         aria-hidden="true"
@@ -159,6 +167,18 @@ const WECHAT_LOGO_URL = WECHAT_CONFIG.logo?.src ?? "";
         opacity: 1;
     }
 
+    #floating-tools[data-wechat-open="true"] .wechat-mobile-backdrop {
+        pointer-events: auto;
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .wechat-mobile-panel {
+        /* A fully opaque fallback prevents Safari's backdrop compositing from
+           revealing page copy through the QR card. */
+        background-color: #161b22;
+    }
+
     @keyframes wechat-breathe {
         0%,
         100% {
@@ -198,6 +218,10 @@ const WECHAT_LOGO_URL = WECHAT_CONFIG.logo?.src ?? "";
         .wechat-mobile-panel {
             transition-duration: 0.01ms;
         }
+
+        .wechat-mobile-backdrop {
+            transition-duration: 0.01ms;
+        }
     }
 </style>
 
@@ -215,6 +239,9 @@ const WECHAT_LOGO_URL = WECHAT_CONFIG.logo?.src ?? "";
         const wechatClose = document.getElementById(
             "wechat-mobile-close",
         ) as HTMLButtonElement | null;
+        const wechatBackdrop = document.getElementById(
+            "wechat-mobile-backdrop",
+        ) as HTMLButtonElement | null;
         const wechatPanel = document.getElementById("wechat-mobile-panel");
 
         if (
@@ -222,6 +249,7 @@ const WECHAT_LOGO_URL = WECHAT_CONFIG.logo?.src ?? "";
             !backToTop ||
             !wechatToggle ||
             !wechatClose ||
+            !wechatBackdrop ||
             !wechatPanel
         ) {
             return;
@@ -266,6 +294,12 @@ const WECHAT_LOGO_URL = WECHAT_CONFIG.logo?.src ?? "";
         );
 
         wechatClose.addEventListener(
+            "click",
+            () => setWechatOpen(false, true),
+            { signal },
+        );
+
+        wechatBackdrop.addEventListener(
             "click",
             () => setWechatOpen(false, true),
             { signal },

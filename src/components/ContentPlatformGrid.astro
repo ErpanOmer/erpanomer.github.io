@@ -73,15 +73,14 @@ const sortedPlatformConfigs = [
             const footerMetrics = secondaryMetrics.filter(
                 (metric) => metric !== featuredMetric,
             );
+            // Navigation is intentionally controlled by the reviewed static
+            // configuration. API account URLs are data only and must never
+            // override the manually maintained profile destination.
             const profileUrl = platform.linkEnabled
-                ? platform.id === "wechat"
-                    ? platform.profileUrl
-                    : stats?.accountUrl ?? platform.profileUrl
+                ? platform.profileUrl
                 : null;
-            const usesStaticEmptyState =
-                platform.id === "wechat" || platform.id === "cnblogs";
             const unavailableLabel =
-                isUnavailable && !usesStaticEmptyState
+                isUnavailable
                     ? "数据暂时不可用"
                     : platform.emptyTitle ?? "暂不可用";
             const unavailableDescription =

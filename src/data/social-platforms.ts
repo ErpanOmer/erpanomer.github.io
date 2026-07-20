@@ -14,12 +14,10 @@ export const SOCIAL_STATS_PLATFORM_IDS = [
     "csdn",
     "51cto",
     "wechat",
-] as const;
-
-export const SOCIAL_PLATFORM_IDS = [
-    ...SOCIAL_STATS_PLATFORM_IDS,
     "cnblogs",
 ] as const;
+
+export const SOCIAL_PLATFORM_IDS = [...SOCIAL_STATS_PLATFORM_IDS] as const;
 
 export type SocialPlatformId = (typeof SOCIAL_PLATFORM_IDS)[number];
 
@@ -44,7 +42,7 @@ export const SOCIAL_PLATFORM_CONFIGS: readonly SocialPlatformConfig[] = [
         name: "掘金",
         shortName: "Juejin",
         displayHandle: "ErpanOmer",
-        profileUrl: "https://juejin.cn/user/3878732754331096",
+        profileUrl: "https://juejin.cn/user/3878732754331096/posts",
         allowedDomains: ["juejin.cn"],
         logo: juejinLogo,
         brandColor: "#1E80FF",
@@ -66,7 +64,7 @@ export const SOCIAL_PLATFORM_CONFIGS: readonly SocialPlatformConfig[] = [
         name: "SegmentFault 思否",
         shortName: "SegmentFault",
         displayHandle: "前端技术官",
-        profileUrl: "https://segmentfault.com/u/erpanomer",
+        profileUrl: "https://segmentfault.com/blog/erpanomer",
         allowedDomains: ["segmentfault.com"],
         logo: segmentfaultLogo,
         brandColor: "#009A61",
@@ -93,7 +91,7 @@ export const SOCIAL_PLATFORM_CONFIGS: readonly SocialPlatformConfig[] = [
         logo: cto51Logo,
         brandColor: "#E60012",
         linkEnabled: true,
-        emptyTitle: "数据维护中",
+        emptyTitle: "平台数据暂不可用",
         emptyDescription: "主页与历史内容仍可访问",
     },
     {
@@ -101,12 +99,12 @@ export const SOCIAL_PLATFORM_CONFIGS: readonly SocialPlatformConfig[] = [
         name: "微信公众号",
         shortName: "WeChat",
         displayHandle: "前端技术官",
-        profileUrl: "https://mp.weixin.qq.com/s/ogtRViRXgjuU9LxbrPG8Kg",
+        profileUrl: "https://mp.weixin.qq.com/s/ILhFqIykkPEb3vQEXXW0jQ",
         allowedDomains: ["mp.weixin.qq.com"],
         logo: wechatLogo,
         brandColor: "#07C160",
         linkEnabled: true,
-        emptyTitle: "公众号内容持续更新",
+        emptyTitle: "公众号数据暂不可用",
         emptyDescription: "扫码关注，或点击卡片查看内容",
     },
     {
@@ -119,8 +117,8 @@ export const SOCIAL_PLATFORM_CONFIGS: readonly SocialPlatformConfig[] = [
         logo: cnblogsLogo,
         brandColor: "#1296DB",
         linkEnabled: true,
-        emptyTitle: "独立技术博客",
-        emptyDescription: "文章持续更新，数据统计尚未接入",
+        emptyTitle: "平台数据暂不可用",
+        emptyDescription: "文章内容仍可通过主页访问",
     },
 ] as const;
 
