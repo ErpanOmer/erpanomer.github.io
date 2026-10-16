@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "wrangler dev --local",
+    "test:catalog": "node --experimental-strip-types --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "deploy:check": "wrangler deploy --dry-run --outdir .wrangler/deploy-check",
     "astro": "astro",
-    "start": "node server.mjs"
+    "start": "astro dev"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.12",

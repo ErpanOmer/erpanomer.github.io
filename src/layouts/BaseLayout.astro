@@ -33,7 +33,7 @@ const url = new URL(Astro.url);
 const lang = "zh-CN";
 
 // Visitor count is now handled in middleware to avoid "headers already sent" issues with cookies
-const viewCount = Astro.locals.viewCount || 0;
+const viewCount = Astro.locals.viewCount ?? null;
 ---
 
 <html lang={lang} class="dark scroll-smooth">

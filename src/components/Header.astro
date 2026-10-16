@@ -1,26 +1,29 @@
 ---
 const menus = [
     {
-        name: "博客",
+        name: "文章",
         href: "/blog/",
     },
     {
-        name: "我的项目",
+        name: "作品",
         href: "/projects/",
     },
     {
-        name: "工具集合",
+        name: "工具",
         href: "/tools/",
-        isNew: true,
+        isNew: false,
     },
+    { name: "关于", href: "/about-me" },
 ];
+const currentPath = Astro.url.pathname.replace(/\/$/,'');
+const isCurrent = (href: string) => currentPath === href.replace(/\/$/,'') || currentPath.startsWith(href.replace(/\/$/,'')+'/');
 ---
 
 <header
     class="sticky top-0 z-50 w-full border-b border-gh-border bg-gh-bg/80 backdrop-blur-lg backdrop-saturate-150"
 >
     <nav
-        class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16"
+        class="site-container flex items-center justify-between h-14 sm:h-16"
     >
         <a
             href="/"
@@ -53,6 +56,7 @@ const menus = [
                     menus.map((menu) => (
                         <a
                             href={menu.href}
+                            aria-current={isCurrent(menu.href) ? "page" : undefined}
                             class="relative px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gh-surface transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                         >
                             {menu.name}
@@ -99,6 +103,7 @@ const menus = [
                         menus.map((menu) => (
                             <a
                                 href={menu.href}
+                            aria-current={isCurrent(menu.href) ? "page" : undefined}
                                 class="flex items-center justify-between px-4 py-3 text-sm text-gray-200 hover:text-white hover:bg-white/5 transition-colors border-b border-gh-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400"
                             >
                                 {menu.name}

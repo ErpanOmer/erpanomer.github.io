@@ -1,24 +1,21 @@
 ---
 import ContentPlatformGrid from "@/components/ContentPlatformGrid.astro";
+import { combineInfluenceStats } from '@/lib/influence';
+import type { CatalogMeta } from '@/lib/public-posts';
 import {
-    fetchSocialStats,
     formatCompactCount,
     formatExactCount,
     type SocialMetric,
 } from "@/lib/social-stats";
 
-const socialStats = await fetchSocialStats({
-    transport: import.meta.env.PROD ? "service" : "public",
-    serviceBinding: import.meta.env.PROD
-        ? Astro.locals.runtime?.env.GET_FANS_WORKER
-        : null,
-});
-const isUnavailable = socialStats.status === "unavailable";
+interface Props { socialStats: import('@/lib/social-stats').SocialStatsResult; websiteStats: CatalogMeta | null; siteVisits: number | null; }
+const { socialStats, websiteStats, siteVisits } = Astro.props;
+const combinedStats = combineInfluenceStats(socialStats, websiteStats);
 
 const metricCards: Array<{ metric: SocialMetric; label: string }> = [
     { metric: "view_count", label: "全网阅读" },
     { metric: "follower_count", label: "全网粉丝" },
-    { metric: "article_count", label: "技术文章" },
+    { metric: "article_count", label: "累计发布" },
     { metric: "like_count", label: "收获点赞" },
     { metric: "favorite_count", label: "内容收藏" },
 ];
@@ -26,10 +23,10 @@ const metricCards: Array<{ metric: SocialMetric; label: string }> = [
 
 <section
     id="social-achievements"
-    class="py-16 sm:py-20 lg:py-24"
+    class="section-space"
     aria-labelledby="social-achievements-title"
 >
-    <div class="mb-10 text-center sm:mb-12">
+    <div class="mb-8 sm:mb-10">
         <p class="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400 sm:text-sm">
             Achievements
         </p>
@@ -39,15 +36,16 @@ const metricCards: Array<{ metric: SocialMetric; label: string }> = [
         >
             成就与影响力
         </h2>
-        <p class="mx-auto mt-3 max-w-xl text-sm text-gh-muted sm:text-base">
-            用长期内容输出，沉淀可量化的技术影响力
+        <p class="mt-3 max-w-xl text-sm text-gh-muted sm:text-base">
+            本站与各内容平台的共同积累。阅读、点赞与发布篇次直接累加，含跨平台分发。
         </p>
     </div>
 
     <dl class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         {
             metricCards.map((card, index) => {
-                const exactValue = socialStats.totals[card.metric];
+                const exactValue = combinedStats.totals[card.metric];
+                const isUnavailable = !combinedStats.coverage[card.metric];
                 const compactValue = isUnavailable
                     ? "—"
                     : formatCompactCount(exactValue);
@@ -70,6 +68,8 @@ const metricCards: Array<{ metric: SocialMetric; label: string }> = [
                                 {card.label}
                             </dt>
                             <dd
+                                data-influence-metric={card.metric}
+                                data-exact-value={isUnavailable ? undefined : exactValue}
                                 class="mt-2 text-2xl font-extrabold tracking-tight tabular-nums text-white sm:text-3xl lg:text-[1.85rem] lg:leading-tight"
                                 title={accessibleValue}
                                 aria-label={accessibleValue}
@@ -82,6 +82,8 @@ const metricCards: Array<{ metric: SocialMetric; label: string }> = [
             })
         }
     </dl>
+    {socialStats.status === 'unavailable' && <p class="catalog-notice">外部平台数据暂不可用，当前汇总仅包含本站已获得的数据。</p>}
+    {!websiteStats && <p class="catalog-notice">本站文章统计暂不可用，已保留各平台的现有统计。</p>}
 
     <div class="mb-5 mt-12 sm:mt-14">
         <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
@@ -92,5 +94,5 @@ const metricCards: Array<{ metric: SocialMetric; label: string }> = [
         </h3>
     </div>
 
-    <ContentPlatformGrid socialStats={socialStats} />
+    <ContentPlatformGrid socialStats={socialStats} websiteStats={websiteStats} siteVisits={siteVisits} />
 </section>

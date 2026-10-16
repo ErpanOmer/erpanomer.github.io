@@ -1,88 +1,13 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
-import { Font } from "astro:assets";
-
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageIntro from '@/components/PageIntro.astro';
 const tools = [
-    {
-        title: "Device Fingerprint",
-        description:
-            "纯前端设备指纹生成器，基于浏览器特征生成唯一设备ID，无需 Cookie 与权限。",
-        icon: "🆔",
-        href: "/tools/device-fingerprint",
-        status: "Available",
-    },
-    {
-        title: "Turbo Mail Sender",
-        description:
-            "功能强大的批量邮件群发工具，支持 SMTP 配置、HTML 邮件编辑與实时发送监控。",
-        icon: "🚀",
-        href: "/tools/turbo-mail-sender",
-        status: "Available",
-    },
-    // Future tools can be added here
+    { title:'Device Fingerprint', name:'设备指纹生成器', description:'在浏览器中生成设备标识，查看 Canvas、Audio 与浏览器特征的构成。', code:'DF', href:'/tools/device-fingerprint' },
+    { title:'Turbo Mail Sender', name:'邮件群发工作台', description:'配置邮件服务、编辑内容与管理发送队列。需要配合独立邮件后端服务使用。', code:'TM', href:'/tools/turbo-mail-sender' },
 ];
 ---
-
-<BaseLayout
-    title="Tools Collection"
-    description="A collection of useful developer tools."
->
-    <div class="max-w-5xl mx-auto px-4 py-12">
-        <div class="mb-10">
-            <h1
-                class="text-3xl font-extrabold text-gray-900 dark:text-white mb-4"
-            >
-                Developer Tools
-            </h1>
-            <p class="text-gray-600 dark:text-gray-400 max-w-2xl">
-                一些好用的工具集合，旨在提升开发与工作效率。
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {
-                tools.map((tool) => (
-                    <a
-                        href={tool.href}
-                        class="group relative block p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:-translate-y-1"
-                    >
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">{tool.icon}</span>
-                            <span
-                                class={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                    tool.status === "Available"
-                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                        : "bg-yellow-100 text-yellow-700"
-                                }`}
-                            >
-                                {tool.status}
-                            </span>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                            {tool.title}
-                        </h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                            {tool.description}
-                        </p>
-                        <div class="absolute bottom-6 right-6 opacity-0 transform translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-5 w-5 text-indigo-600 dark:text-indigo-400"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                />
-                            </svg>
-                        </div>
-                    </a>
-                ))
-            }
-        </div>
+<BaseLayout title="工具集合" description="ErpanOmer 的开发工具集合：设备指纹生成器、邮件群发工作台。">
+    <div class="site-container page-shell"><PageIntro eyebrow="ERPANOMER / TOOLS" title="让日常工作，轻一点。" description="从实际需求中做出来的小工具。少一些重复操作，多一些专注的时间。" />
+        <div class="tools-grid">{tools.map(tool=><a href={tool.href} class="tool-link-card"><div class="tool-card-top"><span class="tool-monogram">{tool.code}</span><span class="eyebrow">可使用 ↗</span></div><p class="tool-english-name">{tool.title}</p><h2>{tool.name}</h2><p>{tool.description}</p><span class="text-action tool-entry">打开工具 →</span></a>)}</div>
     </div>
 </BaseLayout>

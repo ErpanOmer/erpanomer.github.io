@@ -1,0 +1,16 @@
+---
+interface Props {
+    eyebrow: string;
+    title: string;
+    description: string;
+    backHref?: string;
+    backLabel?: string;
+}
+const { eyebrow, title, description, backHref = '/', backLabel = '返回首页' } = Astro.props;
+---
+<header class="page-intro standard-intro">
+    <a class="intro-back text-action" href={backHref}>{backLabel} <span aria-hidden="true">↗</span></a>
+    <p class="eyebrow">{eyebrow}</p>
+    <h1>{title}</h1>
+    <p>{description}</p>
+</header>

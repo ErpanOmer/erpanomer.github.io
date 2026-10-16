@@ -1,5 +1,8 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageIntro from '@/components/PageIntro.astro';
+import { getCatalog } from '@/lib/blog-catalog';
+import { combineInfluenceStats } from '@/lib/influence';
 import ContentPlatformGrid from "@/components/ContentPlatformGrid.astro";
 import Giscus from "@/components/Giscus.astro";
 import {
@@ -8,13 +11,12 @@ import {
     formatExactCount,
 } from "@/lib/social-stats";
 
-const socialStats = await fetchSocialStats({
-    transport: import.meta.env.PROD ? "service" : "public",
-    serviceBinding: import.meta.env.PROD
-        ? Astro.locals.runtime?.env.GET_FANS_WORKER
-        : null,
-});
-const hasSocialStats = socialStats.status !== "unavailable";
+const [socialStats, catalogResult] = await Promise.all([
+    fetchSocialStats({ transport:import.meta.env.PROD?'service':'public',serviceBinding:import.meta.env.PROD?Astro.locals.runtime?.env.GET_FANS_WORKER:null }),
+    getCatalog(Astro.locals.runtime?.env?.BLOG_DB,{q:'',tag:'',sort:'latest',includeMeta:true},1).catch(error=>{console.error('About page statistics:',error);return null;}),
+]);
+const websiteStats = catalogResult?.meta ?? null;
+const combinedStats = combineInfluenceStats(socialStats,websiteStats);
 
 const proofStats = [
     {
@@ -23,29 +25,29 @@ const proofStats = [
         label: "年工程经验",
     },
     {
-        value: hasSocialStats
-            ? formatCompactCount(socialStats.totals.view_count)
+        value: combinedStats.coverage.view_count > 0
+            ? formatCompactCount(combinedStats.totals.view_count)
             : "—",
-        exact: hasSocialStats
-            ? formatExactCount(socialStats.totals.view_count)
+        exact: combinedStats.coverage.view_count > 0
+            ? formatExactCount(combinedStats.totals.view_count)
             : "数据暂时不可用",
         label: "全网阅读",
     },
     {
-        value: hasSocialStats
-            ? formatCompactCount(socialStats.totals.article_count)
+        value: combinedStats.coverage.article_count > 0
+            ? formatCompactCount(combinedStats.totals.article_count)
             : "—",
-        exact: hasSocialStats
-            ? formatExactCount(socialStats.totals.article_count)
+        exact: combinedStats.coverage.article_count > 0
+            ? formatExactCount(combinedStats.totals.article_count)
             : "数据暂时不可用",
-        label: "技术文章",
+        label: "累计发布",
     },
     {
-        value: hasSocialStats
-            ? formatCompactCount(socialStats.totals.follower_count)
+        value: combinedStats.coverage.follower_count > 0
+            ? formatCompactCount(combinedStats.totals.follower_count)
             : "—",
-        exact: hasSocialStats
-            ? formatExactCount(socialStats.totals.follower_count)
+        exact: combinedStats.coverage.follower_count > 0
+            ? formatExactCount(combinedStats.totals.follower_count)
             : "数据暂时不可用",
         label: "跨平台粉丝",
     },
@@ -87,69 +89,9 @@ const expertise = [
     title="关于我"
     description="ErpanOmer，资深 Web 前端专家，专注复杂前端架构、Node.js、Electron、Shopify 与 Cloudflare 边缘系统。"
 >
-    <div class="mx-auto max-w-6xl px-5 py-12 sm:px-6 sm:py-16 lg:py-20">
-        <section class="relative overflow-hidden border-b border-gh-border pb-12 sm:pb-14">
-            <div class="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-indigo-500/[0.08] blur-3xl"></div>
-            <div class="relative grid items-center gap-8 sm:grid-cols-[auto_1fr] sm:gap-10 lg:gap-12">
-                <div class="mx-auto sm:mx-0">
-                    <div class="group relative h-32 w-32 sm:h-36 sm:w-36">
-                        <div class="absolute -inset-2 rounded-full bg-gradient-to-br from-indigo-500/35 to-purple-500/20 opacity-70 blur-lg transition-opacity duration-300 group-hover:opacity-100"></div>
-                        <img
-                            src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_320,h_320/f_auto/q_auto/me_kknemi"
-                            width="320"
-                            height="320"
-                            class="relative h-full w-full rounded-full border-2 border-gh-border object-cover transition-colors duration-300 group-hover:border-indigo-400"
-                            alt="ErpanOmer"
-                        />
-                        <span
-                            class="absolute bottom-2 right-2 h-4 w-4 rounded-full border-[3px] border-gh-bg bg-emerald-400"
-                            aria-label="在线"
-                        ></span>
-                    </div>
-                </div>
-
-                <div class="text-center sm:text-left">
-                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
-                        ErpanOmer · Frontend Expert
-                    </p>
-                    <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                        资深前端专家
-                    </h1>
-                    <p class="mt-2 text-lg font-semibold text-gh-text sm:text-xl">
-                        专注复杂系统的架构与交付
-                    </p>
-                    <p class="mt-4 max-w-3xl text-sm leading-7 text-gh-muted sm:text-base">
-                        十余年 Web 工程经验，长期实践前端架构、Node.js 服务、Electron
-                        桌面应用、Shopify 商业项目与 Cloudflare 边缘系统。擅长把复杂需求收敛为稳定、清晰、可持续演进的产品。
-                    </p>
-
-                    <div class="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-                        {["React / Vue", "TypeScript", "Node.js", "Electron", "Shopify", "Cloudflare"].map((skill) => (
-                            <span class="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-gh-text">
-                                {skill}
-                            </span>
-                        ))}
-                    </div>
-
-                    <div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:justify-start">
-                        <a
-                            href="https://github.com/ErpanOmer"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-gh-bg transition-all hover:-translate-y-0.5 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg"
-                        >
-                            GitHub <span aria-hidden="true">↗</span>
-                        </a>
-                        <a
-                            href="mailto:erpanomer@gmail.com"
-                            class="inline-flex min-h-11 items-center justify-center rounded-xl border border-gh-border bg-gh-surface px-5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:border-indigo-400/50 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gh-bg"
-                        >
-                            联系我
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="site-container page-shell about-page">
+        <PageIntro eyebrow="ERPANOMER / ABOUT" title="构建与分享，是我的日常。" description="前端技术官 · ErpanOmer。关注技术本身，也关注它如何解决真实的问题。" />
+        <section class="about-profile"><img src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_200,h_200/f_auto/q_auto/me_kknemi" alt="ErpanOmer" width="96" height="96" /><div><h2>资深 Web 前端工程师</h2><p>十余年 Web 工程经验，长期实践前端架构、Node.js 服务、Electron 桌面应用、Shopify 商业项目与 Cloudflare 边缘系统。擅长把复杂需求收敛为稳定、清晰、可持续演进的产品。</p><div class="about-links"><a class="text-action" href="https://github.com/ErpanOmer" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a class="text-action" href="mailto:erpanomer@gmail.com">联系我 ↗</a></div></div></section>
 
         <dl class="mt-6 grid grid-cols-2 overflow-hidden rounded-xl border border-gh-border bg-gh-surface sm:grid-cols-4">
             {
@@ -234,11 +176,11 @@ const expertise = [
                     </h2>
                 </div>
                 <p class="mt-3 max-w-xl text-sm leading-6 text-gh-muted sm:mt-0 sm:text-right">
-                    跨平台持续创作与技术分享。
+                    本站与跨平台的持续创作，数据直接累加。
                 </p>
             </div>
 
-            <ContentPlatformGrid socialStats={socialStats} />
+            <ContentPlatformGrid socialStats={socialStats} websiteStats={websiteStats} siteVisits={Astro.locals.viewCount ?? null} />
         </section>
 
         <section class="flex flex-col gap-5 rounded-xl border border-gh-border bg-gh-surface p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">

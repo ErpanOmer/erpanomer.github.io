@@ -264,8 +264,10 @@ export async function getDbPostBySlug(
     db: D1Database,
     slug: string,
     includeDraft = false,
+    includeDeleted = false,
 ): Promise<DBPostRow | null> {
-    let sql = 'SELECT * FROM posts WHERE slug = ? AND deleted_at IS NULL';
+    let sql = 'SELECT * FROM posts WHERE slug = ?';
+    if (!includeDeleted) sql += ' AND deleted_at IS NULL';
     if (!includeDraft) {
         sql += ' AND draft = 0';
     }

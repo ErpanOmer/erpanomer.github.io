@@ -19,3 +19,9 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 .wrangler/
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.playwright-mcp/

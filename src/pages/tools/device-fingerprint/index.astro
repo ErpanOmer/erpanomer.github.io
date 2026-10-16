@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageIntro from "@/components/PageIntro.astro";
 import CodeBlock from "@/components/CodeBlock.astro";
 import UsageCode from "./code.md";
 ---
@@ -9,42 +10,14 @@ import UsageCode from "./code.md";
     description="基于浏览器特征生成的纯前端设备唯一标识 ID。无 Cookie、无缓存、无权限请求，隐私安全。"
 >
     <div
-        class="relative min-h-screen overflow-hidden bg-slate-900 text-slate-100 font-sans selection:bg-cyan-500/30"
+        class="tool-page overflow-hidden"
     >
-        <!-- Background Effects -->
-        <div
-            class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-cyan-900/20 to-transparent pointer-events-none"
-        >
-        </div>
-        <div
-            class="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none animate-pulse"
-        >
-        </div>
-        <div
-            class="absolute bottom-0 left-20 w-72 h-72 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"
-        >
-        </div>
-
-        <div class="relative max-w-5xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-            <!-- Header -->
-            <div class="text-center mb-16">
-                <h1
-                    class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400"
-                >
-                    设备指纹生成器
-                </h1>
-                <p class="max-w-2xl mx-auto text-lg text-slate-400">
-                    仅利用浏览器特征生成稳定、唯一的设备 ID。
-                    <br />
-                    <span class="text-cyan-400 font-medium"
-                        >无 Cookie · 无 LocalStorage · 零权限获取</span
-                    >
-                </p>
-            </div>
+        <div class="site-container page-shell fingerprint-workspace">
+            <PageIntro eyebrow="TOOLS / DEVICE FINGERPRINT" title="设备指纹生成器" description="查看浏览器特征如何组成设备标识。无需 Cookie、LocalStorage 或额外权限。" backHref="/tools" backLabel="工具集合" />
 
             <!-- Main Action Card -->
             <div
-                class="bg-slate-800/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 px-4 py-8 md:p-12 shadow-2xl mb-12 ring-1 ring-white/10"
+                class="bg-gh-surface  rounded-xl border border-gh-border px-4 py-8 md:p-8 shadow-none mb-12 "
             >
                 <div
                     class="flex flex-col items-center justify-center space-y-8"
@@ -55,27 +28,27 @@ import UsageCode from "./code.md";
                         class="w-full max-w-3xl text-center hidden opacity-0 transition-all duration-700 transform translate-y-4"
                     >
                         <div
-                            class="uppercase tracking-widest text-xs font-semibold text-slate-500 mb-2"
+                            class="uppercase tracking-widest text-xs font-semibold text-gh-muted mb-2"
                         >
                             Unique Device Identifier
                         </div>
                         <div class="relative group">
                             <div
-                                class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-indigo-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-500"
+                                class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-500"
                             >
                             </div>
                             <div
                                 id="device-id-display"
-                                class="relative bg-slate-900 rounded-xl px-4 py-6 md:py-8 break-all font-mono text-xl md:text-4xl text-cyan-50 tracking-wider shadow-inner border border-slate-700"
+                                class="relative bg-gh-bg rounded-xl px-4 py-6 md:py-8 break-all font-mono text-xl md:text-4xl text-gh-text tracking-wider shadow-inner border border-gh-border"
                             >
                                 <span
-                                    class="animate-pulse text-slate-500 text-sm"
+                                    class="animate-pulse text-gh-muted text-sm"
                                     >正在计算设备指纹...</span
                                 >
                             </div>
                             <button
                                 id="copy-btn"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-cyan-400 transition-colors"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gh-muted hover:text-indigo-400 transition-colors"
                                 title="复制 ID"
                             >
                                 <svg
@@ -102,7 +75,7 @@ import UsageCode from "./code.md";
                         </div>
 
                         <div
-                            class="flex justify-center gap-6 mt-6 text-sm text-slate-400 font-mono"
+                            class="flex justify-center gap-6 mt-6 text-sm text-gh-muted font-mono"
                         >
                             <div title="熵值越高，唯一性越强">
                                 <span>熵值估计:</span>
@@ -124,7 +97,7 @@ import UsageCode from "./code.md";
                     <!-- Generate Button (Optional Manual Trigger) -->
                     <button
                         id="generate-btn"
-                        class="text-sm text-slate-400 hover:text-cyan-400 transition-colors underline decoration-dotted underline-offset-4 hidden"
+                        class="text-sm text-gh-muted hover:text-indigo-400 transition-colors underline decoration-dotted underline-offset-4 hidden"
                     >
                         重新生成
                     </button>
@@ -137,7 +110,7 @@ import UsageCode from "./code.md";
                 >
                     <!-- Canvas Module -->
                     <div
-                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-cyan-500/30 transition-colors flex flex-col"
+                        class="bg-gh-bg p-6 rounded-xl border border-gh-border backdrop-blur-sm hover:border-cyan-500/30 transition-colors flex flex-col"
                     >
                         <div class="flex items-center gap-3 mb-4">
                             <div
@@ -167,12 +140,12 @@ import UsageCode from "./code.md";
                                     ></path></svg
                                 >
                             </div>
-                            <h3 class="font-bold text-slate-200">
+                            <h3 class="font-bold text-gh-text">
                                 Canvas 指纹
                             </h3>
                         </div>
                         <div
-                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                            class="prose prose-invert text-xs text-gh-muted mb-3"
                         >
                             通过在隐藏画布上绘制混合字体、Emoji
                             和混合模式图形，捕捉不同 GPU 和 渲染引擎的细微差异。
@@ -188,14 +161,14 @@ import UsageCode from "./code.md";
                         </div>
                         <div class="mt-2 text-right">
                             <span
-                                class="text-[10px] text-slate-500 font-mono"
+                                class="text-[10px] text-gh-muted font-mono"
                                 id="signal-canvas-hash"></span>
                         </div>
                     </div>
 
                     <!-- Audio Module -->
                     <div
-                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-indigo-500/30 transition-colors flex flex-col"
+                        class="bg-gh-bg p-6 rounded-xl border border-gh-border backdrop-blur-sm hover:border-indigo-500/30 transition-colors flex flex-col"
                     >
                         <div class="flex items-center gap-3 mb-4">
                             <div
@@ -217,10 +190,10 @@ import UsageCode from "./code.md";
                                     ></path><path d="M22 10v3"></path></svg
                                 >
                             </div>
-                            <h3 class="font-bold text-slate-200">Audio 指纹</h3>
+                            <h3 class="font-bold text-gh-text">Audio 指纹</h3>
                         </div>
                         <div
-                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                            class="prose prose-invert text-xs text-gh-muted mb-3"
                         >
                             利用 OfflineAudioContext
                             渲染无声振荡波形并进行压缩，捕捉音频硬件及驱动的特征差异。
@@ -321,7 +294,7 @@ import UsageCode from "./code.md";
                         </div>
                         <div class="mt-2 text-right">
                             <span
-                                class="text-[10px] text-slate-500 font-mono"
+                                class="text-[10px] text-gh-muted font-mono"
                                 id="signal-audio-hash">等待生成...</span
                             >
                         </div>
@@ -329,7 +302,7 @@ import UsageCode from "./code.md";
 
                     <!-- Hardware Module -->
                     <div
-                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-emerald-500/30 transition-colors flex flex-col"
+                        class="bg-gh-bg p-6 rounded-xl border border-gh-border backdrop-blur-sm hover:border-emerald-500/30 transition-colors flex flex-col"
                     >
                         <div class="flex items-center gap-3 mb-4">
                             <div
@@ -362,10 +335,10 @@ import UsageCode from "./code.md";
                                         y2="21"></line></svg
                                 >
                             </div>
-                            <h3 class="font-bold text-slate-200">硬件特征</h3>
+                            <h3 class="font-bold text-gh-text">硬件特征</h3>
                         </div>
                         <div
-                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                            class="prose prose-invert text-xs text-gh-muted mb-3"
                         >
                             综合 CPU
                             核心并发数、设备内存、系统语言、时区等相对稳定的硬件特征。
@@ -377,46 +350,46 @@ import UsageCode from "./code.md";
                                 id="hw-cores"
                                 class="flex justify-between gap-2"
                             >
-                                <span class="text-slate-500">核心数:</span>
+                                <span class="text-gh-muted">核心数:</span>
                                 <span class="text-emerald-400">--</span>
                             </div>
                             <div id="hw-mem" class="flex justify-between gap-2">
-                                <span class="text-slate-500">内存:</span>
+                                <span class="text-gh-muted">内存:</span>
                                 <span class="text-emerald-400">--</span>
                             </div>
                             <div
                                 id="hw-platform"
                                 class="flex justify-between gap-2"
                             >
-                                <span class="text-slate-500">平台:</span>
+                                <span class="text-gh-muted">平台:</span>
                                 <span class="text-emerald-400">--</span>
                             </div>
                             <div
                                 id="hw-language"
                                 class="flex justify-between gap-2"
                             >
-                                <span class="text-slate-500">语言:</span>
+                                <span class="text-gh-muted">语言:</span>
                                 <span class="text-emerald-400">--</span>
                             </div>
                             <div
                                 id="hw-colordepth"
                                 class="flex justify-between gap-2"
                             >
-                                <span class="text-slate-500">色深:</span>
+                                <span class="text-gh-muted">色深:</span>
                                 <span class="text-emerald-400">--</span>
                             </div>
                             <div
                                 id="hw-pixeldepth"
                                 class="flex justify-between gap-2"
                             >
-                                <span class="text-slate-500">像素深度:</span>
+                                <span class="text-gh-muted">像素深度:</span>
                                 <span class="text-emerald-400">--</span>
                             </div>
                             <div
                                 id="hw-timezone"
                                 class="flex justify-between gap-2"
                             >
-                                <span class="text-slate-500">时区偏移:</span>
+                                <span class="text-gh-muted">时区偏移:</span>
                                 <span class="text-emerald-400">--</span>
                             </div>
                         </div>
@@ -424,7 +397,7 @@ import UsageCode from "./code.md";
 
                     <!-- WebGL Module -->
                     <div
-                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-purple-500/30 transition-colors flex flex-col"
+                        class="bg-gh-bg p-6 rounded-xl border border-gh-border backdrop-blur-sm hover:border-purple-500/30 transition-colors flex flex-col"
                     >
                         <div class="flex items-center gap-3 mb-4">
                             <div
@@ -446,10 +419,10 @@ import UsageCode from "./code.md";
                                     ></path></svg
                                 >
                             </div>
-                            <h3 class="font-bold text-slate-200">WebGL 指纹</h3>
+                            <h3 class="font-bold text-gh-text">WebGL 指纹</h3>
                         </div>
                         <div
-                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                            class="prose prose-invert text-xs text-gh-muted mb-3"
                         >
                             获取 GPU 供应商、渲染器型号及 WebGL
                             参数，捕捉显卡硬件特征。
@@ -461,7 +434,7 @@ import UsageCode from "./code.md";
                                 id="webgl-vendor"
                                 class="truncate whitespace-normal"
                             >
-                                <span class="text-slate-500">供应商:</span>
+                                <span class="text-gh-muted">供应商:</span>
                                 <span class="text-purple-400 whitespace-normal"
                                     >--</span
                                 >
@@ -470,21 +443,21 @@ import UsageCode from "./code.md";
                                 id="webgl-renderer"
                                 class="truncate whitespace-normal"
                             >
-                                <span class="text-slate-500">渲染器:</span>
+                                <span class="text-gh-muted">渲染器:</span>
                                 <span class="text-purple-400">--</span>
                             </div>
                             <div
                                 id="webgl-version"
                                 class="truncate whitespace-normal"
                             >
-                                <span class="text-slate-500">版本:</span>
+                                <span class="text-gh-muted">版本:</span>
                                 <span class="text-purple-400">--</span>
                             </div>
                             <div
                                 id="webgl-texture"
                                 class="truncate whitespace-normal"
                             >
-                                <span class="text-slate-500">最大纹理:</span>
+                                <span class="text-gh-muted">最大纹理:</span>
                                 <span class="text-purple-400">--</span>
                             </div>
                         </div>
@@ -492,7 +465,7 @@ import UsageCode from "./code.md";
 
                     <!-- Font Detection Module -->
                     <div
-                        class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm hover:border-pink-500/30 transition-colors flex flex-col"
+                        class="bg-gh-bg p-6 rounded-xl border border-gh-border backdrop-blur-sm hover:border-pink-500/30 transition-colors flex flex-col"
                     >
                         <div class="flex items-center gap-3 mb-4">
                             <div
@@ -520,10 +493,10 @@ import UsageCode from "./code.md";
                                         y2="20"></line></svg
                                 >
                             </div>
-                            <h3 class="font-bold text-slate-200">字体检测</h3>
+                            <h3 class="font-bold text-gh-text">字体检测</h3>
                         </div>
                         <div
-                            class="prose prose-invert text-xs text-slate-400 mb-3"
+                            class="prose prose-invert text-xs text-gh-muted mb-3"
                         >
                             检测系统已安装的字体，不同设备字体列表差异明显。
                         </div>
@@ -531,12 +504,12 @@ import UsageCode from "./code.md";
                             class="flex-1 flex flex-col px-3 py-2 bg-white/5 rounded-lg border border-white/10 text-xs font-mono text-slate-300 space-y-1 overflow-y-auto"
                         >
                             <div id="font-count">
-                                <span class="text-slate-500">检测到:</span>
+                                <span class="text-gh-muted">检测到:</span>
                                 <span
                                     class="text-pink-400"
                                     id="font-count-value">--</span
                                 >
-                                <span class="text-slate-500">种字体</span>
+                                <span class="text-gh-muted">种字体</span>
                             </div>
                             <div
                                 id="font-list"
@@ -550,7 +523,7 @@ import UsageCode from "./code.md";
             </div>
 
             <!-- Documentation Content - Vertical Layout -->
-            <div class="max-w-4xl mx-auto mt-16 space-y-16 text-slate-400">
+            <div class="max-w-4xl mx-auto mt-16 space-y-16 text-gh-muted">
                 <!-- Section 1: Core Logic -->
                 <section class="border-l-4 border-cyan-500 pl-6 space-y-4">
                     <h3 class="text-2xl font-bold text-white mb-4">
@@ -608,14 +581,14 @@ import UsageCode from "./code.md";
                         class="bg-cyan-900/20 border border-cyan-500/30 rounded-lg p-4 mt-4"
                     >
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="text-cyan-400 text-xl">🔐</span>
+                            <span class="text-indigo-400 text-xl">🔐</span>
                             <strong class="text-cyan-300">熵值估计</strong>
                         </div>
                         <p class="text-sm text-slate-300">
-                            5 种信号源组合可提供约 <strong class="text-cyan-400"
+                            5 种信号源组合可提供约 <strong class="text-indigo-400"
                                 >38 bits</strong
                             > 的熵值，理论上可以区分约 <strong
-                                class="text-cyan-400">2740 亿</strong
+                                class="text-indigo-400">2740 亿</strong
                             >台不同设备。
                         </p>
                     </div>
@@ -626,7 +599,7 @@ import UsageCode from "./code.md";
                     <h3 class="text-2xl font-bold text-white mb-4">
                         使用方法 (Usage)
                     </h3>
-                    <p class="text-sm mb-4 text-slate-400">
+                    <p class="text-sm mb-4 text-gh-muted">
                         本 SDK 已开源，您可以直接在项目中引入使用。
                         <a
                             href="https://github.com/ErpanOmer/erpanomer.github.io/tree/master/src/pages/tools/device-fingerprint/fingerprint-sdk.js"
@@ -648,7 +621,7 @@ import UsageCode from "./code.md";
                     </h3>
                     <ul class="space-y-4 text-slate-300">
                         <li class="bg-black/20 p-4 rounded-lg">
-                            <div class="font-bold text-cyan-400 mb-1">
+                            <div class="font-bold text-indigo-400 mb-1">
                                 ✅ 隐私友好
                             </div>
                             <div class="text-sm">
@@ -658,7 +631,7 @@ import UsageCode from "./code.md";
                             </div>
                         </li>
                         <li class="bg-black/20 p-4 rounded-lg">
-                            <div class="font-bold text-cyan-400 mb-1">
+                            <div class="font-bold text-indigo-400 mb-1">
                                 ✅ 稳定持久
                             </div>
                             <div class="text-sm">
@@ -686,10 +659,10 @@ import UsageCode from "./code.md";
             </div>
             <!-- PROMOTION BANNER -->
             <section
-                class="max-w-4xl mx-auto my-8 md:mt-12 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
+                class="max-w-4xl mx-auto my-8 md:mt-12 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
             >
                 <div
-                    class="bg-slate-900 rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
+                    class="bg-gh-bg rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
                 >
                     <div class="flex items-center gap-4">
                         <div
@@ -712,7 +685,7 @@ import UsageCode from "./code.md";
                             <h3 class="text-base font-bold text-white">
                                 觉得这个工具好用？
                             </h3>
-                            <p class="text-sm text-slate-400 mt-0.5">
+                            <p class="text-sm text-gh-muted mt-0.5">
                                 你的 Star
                                 是对我持续开发的最大鼓励！点击右侧按钮前往
                                 GitHub 支持我。

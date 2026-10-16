@@ -17,7 +17,7 @@
 - 🚀 **极致性能** - Astro SSR 模式 + Cloudflare 边缘计算，毫秒级响应
 - 🎨 **精美设计** - GitHub Dark 主题，响应式设计，完美适配各种设备
 - 📝 **博客系统** - 完整的 Markdown 博客，支持标签、封面图、阅读时间、RSS 订阅
-- 🚀 **项目展示** - 智能链接系统（外部 URL 自动跳转，相对路径显示 alert 弹窗）
+- 🚀 **项目展示** - 智能链接系统（外部 URL 自动跳转，站内链接直接打开，暂不可用项目显示提示）
 - 🔧 **智能代理** - GET 请求限制、速率限制（30/min）、智能缓存、超时控制
 - 📊 **访问统计** - 基于 Cloudflare KV 的实时流量统计
 - 🔒 **安全防护** - URL 长度限制、速率限制、请求方法限制
@@ -29,7 +29,7 @@
 
 **样式方案**: Tailwind CSS 3.4.17, @tailwindcss/typography
 
-**部署平台**: Cloudflare Workers, GitHub Pages, Cloudflare KV
+**部署平台**: Cloudflare Workers、D1、Cloudflare KV
 
 **图片处理**: Cloudinary, Sharp
 
@@ -41,7 +41,7 @@
 
 ## 📋 环境要求
 
-- Node.js 20.x 或更高版本
+- Node.js 24（与 GitHub Actions 校验环境一致）
 - npm（随 Node.js 安装）
 - Git
 - Cloudflare 账户（可选，用于部署到 Workers）
@@ -58,7 +58,7 @@ npm install
 
 ### 配置环境变量
 
-复制 `.env` 文件并配置：
+复制 `.env.example` 为本地 `.env` 后配置；`.env` 和 `.dev.vars` 不提交到 Git：
 
 ```bash
 PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -102,20 +102,60 @@ wrangler kv:namespace create "RATE_LIMIT"
 ```bash
 npm run dev      # 启动开发服务器（http://localhost:4321）
 npm run build    # 构建生产版本
-npm run preview  # 预览生产构建
+npm run preview  # 先 build，再使用本地 Worker 预览（默认 8787 端口）
 ```
 
-### 部署
+### 博客列表与本地数据
 
-**GitHub Pages**（自动部署）:
-- 推送到 `master` 分支自动触发部署
-- 配置文件：`.github/workflows/deploy.yml`
+- 首页以两列简洁预览展示最新 6 篇，热门文章放在下方并排除重复项；影响力数据只请求一次。
+- `/blog` 服务端渲染首批 12 篇，后续滚动加载；支持搜索、标签、阅读/点赞排序，以及关闭 JavaScript 后的下一页链接。
+- `GET /api/blog/posts` 接受 `q`、`tag`、`sort=latest|views|likes`、`cursor`、`includeMeta=1`。每批固定 12 篇，只返回摘要，不携带正文或管理字段。
+- 开发继续使用 `.wrangler/state` 中的本地 D1，生产使用 `BLOG_DB` 绑定。两者共用查询逻辑，但本地文章和计数可能与线上不同；不会自动同步或写入生产数据库。
+- Markdown 与数据库按 slug 去重，数据库有效文章的元数据和发布状态优先。本站文章数为去重后的可见文章数，跨平台发布次数包含多平台分发。
+- 本地缺少表或未提供数据库绑定时可展示静态文章；统计不可用显示“—”。其他数据库错误会显示失败状态，并支持重试。
+- RSS 提供最新 50 篇，sitemap 与 llms.txt 按批读取全部公开文章，不再受 200 篇上限影响。
 
-**Cloudflare Workers**:
+使用 Node.js 24（含内置 SQLite）运行独立的查询测试，不修改现有本地或线上数据库：
+
 ```bash
+npm run test:catalog
+```
+
+### 页面样式约定
+
+- 文章详情保持原有三栏结构、标题和正文排版；首页与列表的调整不改变详情页布局。
+- 首页最新与热门文章保留已有封面，使用等比例缩略图和简洁摘要。
+- 本站及外部平台全部复用 `PlatformCard.astro`，通过数据配置展示不同指标，不单独绘制本站卡片。
+
+### 提交与部署
+
+当前项目使用 Astro SSR 与 Cloudflare D1，部署目标是 **Cloudflare Workers**。GitHub 用于存储代码与执行校验，不再使用静态 GitHub Pages 发布工作流。
+
+推送到 `master` 或发起 PR 后，`.github/workflows/deploy.yml` 会执行依赖安装、12 项数据测试、类型检查、构建及 Worker 部署预演；不会自动发布网站。
+
+提交前可在本地执行：
+
+```bash
+npm run test:catalog
+npm run typecheck
+npm run build
+npm run deploy:check
+```
+
+正式发布（以下命令会更新线上 Worker，需要自行确认部署时机）：
+
+```bash
+npx wrangler login
 npm run build
 npx wrangler deploy
 ```
+
+生产账号需具备 `wrangler.jsonc` 中 D1、KV、`GET_FANS_WORKER` 服务及 Secrets Store 绑定的访问权限。现有数据库沿用原表结构，本次界面与汇总改动无需迁移；新建环境需要先用 `schema.sql` 初始化数据库。管理员凭据通过已有 `WEBSITE_ADMIN_TOKEN` Secrets Store 绑定提供，勿将真实凭据写入仓库。
+
+“成就与影响力”按原口径直接累加本站的公开文章数、文章阅读与点赞；外部平台的粉丝和收藏保持原值。全站访问量单列展示，避免与文章阅读重复相加。某个来源不可用时，仅展示已获得的数据，不补造数值。
+
+本地 Worker 生产预览使用本地数据库；若未启动 `GET_FANS_WORKER` 服务，外部平台统计会显示不可用，`npm run dev` 则沿用公开统计接口。
+
 
 ### 添加博客文章
 
@@ -146,7 +186,7 @@ cover: "https://example.com/cover-image.jpg"
     description: "项目描述",
     tags: ["标签1", "标签2"],
     image: "https://example.com/project-image.jpg",
-    link: "/projects/my-project/",  // 相对路径显示 alert 弹窗
+    link: "/projects/my-project/",  // 站内链接直接打开，暂不可用项目显示提示
     type: "project-type",
     icon: "svg-icon-string",
     message: "该项目正在开发中，敬请期待！"  // 可选，自定义消息

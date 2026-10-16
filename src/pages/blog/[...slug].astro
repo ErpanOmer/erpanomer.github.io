@@ -25,29 +25,33 @@ if (!slug) {
     return Astro.redirect("/blog");
 }
 
-const db = Astro.locals.runtime.env.BLOG_DB;
+const db = Astro.locals.runtime?.env?.BLOG_DB;
 // --------------------------------------------------------
 // 2. Fetch Post Data (Static + D1)
 // --------------------------------------------------------
 let dbPostRow: any = null;
 try {
-    dbPostRow = await getDbPostBySlug(db, slug, false);
+    if (db) dbPostRow = await getDbPostBySlug(db, slug, true, true);
 } catch (e) {
     console.error('Failed to fetch D1 post:', e);
 }
 
-const dbPost = dbPostRow ? normalizeDbPost(dbPostRow) : null;
+if (dbPostRow?.deleted_at != null || (dbPostRow?.title?.trim() && dbPostRow.draft !== 0)) {
+    return new Response(null, { status: 404 });
+}
+// Legacy rows may contain only counters, rather than published article metadata.
+const dbPost = dbPostRow?.title?.trim() ? normalizeDbPost(dbPostRow) : null;
 const shouldLoadStaticEntry = !dbPost || (!dbPost.htmlContent && !dbPost.content);
 const postEntry = shouldLoadStaticEntry ? await getEntry("blog", slug) : null;
 
-if (!postEntry && !dbPostRow) {
+if ((!postEntry && !dbPost) || postEntry?.data.draft) {
     return new Response(null, { status: 404, headers: { 'Location': '/404' } });
 }
 
 // --------------------------------------------------------
 // 3. Lazy Sync & Legacy DB Check for Static Posts
 // --------------------------------------------------------
-if (postEntry && !dbPostRow) {
+if (db && postEntry && !dbPostRow) {
     try {
         await syncPost(db, {
             slug,
@@ -80,8 +84,8 @@ const tags = dbPost?.tags?.length ? dbPost.tags : (postEntry?.data.tags || []);
 // 5. Sidebar Lists (Recent & Popular)
 // --------------------------------------------------------
 const [recentPostsResult, popularPostsResult] = await Promise.allSettled([
-    getRecentPosts(db, 3, slug),
-    getPopularPosts(db, 3, slug),
+    db ? getRecentPosts(db, 3, slug) : Promise.resolve([]),
+    db ? getPopularPosts(db, 3, slug) : Promise.resolve([]),
 ]);
 
 if (recentPostsResult.status === "rejected") {

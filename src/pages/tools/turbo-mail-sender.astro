@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageIntro from "@/components/PageIntro.astro";
 import "quill/dist/quill.snow.css";
 
 const title = "Turbo Mail Sender";
@@ -7,62 +8,17 @@ const description = "批量邮件群发工具，支持 SMTP 配置与可视化�
 ---
 
 <BaseLayout title={title} description={description}>
-    <div class="max-w-5xl mx-auto px-4 py-8 md:py-16">
-        <header
-            class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"
-        >
-            <div class="flex items-center space-x-4">
-                <div
-                    class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-lg ring-4 ring-indigo-50 dark:ring-indigo-900/20"
-                >
-                    TM
-                </div>
-                <div>
-                    <h1
-                        class="text-2xl font-black text-gray-900 dark:text-white tracking-tight"
-                    >
-                        Turbo Mail Sender
-                    </h1>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span
-                            class="text-xs font-medium px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
-                            >v2.1 Open Source</span
-                        >
-                        <p class="text-xs text-gray-400 dark:text-gray-500">
-                            高性能邮件群发控制台
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div
-                class="flex items-center justify-between md:justify-end gap-3 bg-gray-50 dark:bg-gray-800/50 p-4 md:px-8 rounded-xl border border-gray-100 dark:border-gray-700/50 md:bg-transparent md:border-none"
-            >
-                <div class="flex flex-col">
-                    <span
-                        id="connectionStatus"
-                        class="inline-flex items-center px-3 py-1 rounded-full bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-bold shadow-sm border border-gray-100 dark:border-gray-700"
-                    >
-                        <span
-                            class="w-2 h-2 rounded-full bg-gray-300 mr-2 animate-pulse"
-                        ></span> 未连接
-                    </span>
-                    <p
-                        class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-bold"
-                    >
-                        Service Status
-                    </p>
-                </div>
-            </div>
-        </header>
+    <div class="site-container page-shell mail-workspace">
+        <PageIntro eyebrow="TOOLS / TURBO MAIL SENDER" title="邮件群发工作台" description="配置服务、编写内容与管理发送队列。支持 SMTP 与可视化编辑，需要连接独立邮件后端。" backHref="/tools" backLabel="工具集合" />
+        <div class="mail-service-state"><span class="eyebrow">SERVICE STATUS</span><span id="connectionStatus" class="text-sm text-gh-muted">未连接</span></div>
 
         <!-- SERVER CONFIG (New) -->
         <section
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 mb-5 border border-gray-100 dark:border-gray-700"
+            class="bg-white dark:bg-gh-surface rounded-xl shadow-sm p-4 md:p-6 mb-5 border border-gray-100 dark:border-gh-border"
         >
             <div class="flex justify-between items-center mb-4">
                 <h2
-                    class="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase"
+                    class="text-sm font-bold text-gray-800 dark:text-gh-text uppercase"
                 >
                     STEP 0: 服务端配置
                 </h2>
@@ -71,20 +27,21 @@ const description = "批量邮件群发工具，支持 SMTP 配置与可视化�
             <div class="flex gap-3 items-end">
                 <div class="flex-1">
                     <label
-                        class="text-xs text-gray-500 dark:text-gray-400 mb-1 block"
+                        class="text-xs text-gray-500 dark:text-gh-muted mb-1 block"
                         >API Server URL</label
                     >
                     <input
                         id="apiBaseUrl"
                         type="text"
                         value=""
-                        placeholder=""
-                        class="w-full border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        placeholder="https://your-mail-service.example"
+                        aria-label="邮件后端服务地址"
+                        class="w-full border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     />
                 </div>
                 <button
                     id="checkConnBtn"
-                    class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition h-[38px]"
+                    class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gh-bg text-gray-700 dark:text-gh-text text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition h-[38px]"
                 >
                     测试连接
                 </button>
@@ -93,11 +50,11 @@ const description = "批量邮件群发工具，支持 SMTP 配置与可视化�
 
         <!-- SECTION 1: SMTP 配置 -->
         <section
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 mb-5 border border-gray-100 dark:border-gray-700"
+            class="bg-white dark:bg-gh-surface rounded-xl shadow-sm p-4 md:p-6 mb-5 border border-gray-100 dark:border-gh-border"
         >
             <div class="flex justify-between items-center mb-4">
                 <h2
-                    class="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase"
+                    class="text-sm font-bold text-gray-800 dark:text-gh-text uppercase"
                 >
                     STEP 1: 发件人配置
                 </h2>
@@ -108,35 +65,35 @@ const description = "批量邮件群发工具，支持 SMTP 配置与可视化�
                     id="smtpHost"
                     type="text"
                     placeholder="smtp.qq.com"
-                    class="border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    class="border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
                 <input
                     id="smtpPort"
                     type="number"
                     placeholder="465"
-                    class="border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    class="border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
                 <input
                     id="senderEmail"
                     type="email"
                     placeholder="you@example.com"
-                    class="border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    class="border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
                 <input
                     id="senderPass"
                     type="password"
                     placeholder="密码 / 授权码"
-                    class="border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    class="border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
             </div>
         </section>
 
         <!-- SECTION 2: 邮件内容 -->
         <section
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 mb-5 border border-gray-100 dark:border-gray-700"
+            class="bg-white dark:bg-gh-surface rounded-xl shadow-sm p-4 md:p-6 mb-5 border border-gray-100 dark:border-gh-border"
         >
             <h2
-                class="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase mb-4"
+                class="text-sm font-bold text-gray-800 dark:text-gh-text uppercase mb-4"
             >
                 STEP 2: 邮件内容
             </h2>
@@ -144,11 +101,11 @@ const description = "批量邮件群发工具，支持 SMTP 配置与可视化�
                 id="mailSubject"
                 type="text"
                 placeholder="邮件主题"
-                class="w-full border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white mb-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                class="w-full border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white mb-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <div
                 id="editor-container"
-                class="rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                class="rounded-lg border dark:border-gh-border bg-white dark:bg-gh-bg text-gray-900 dark:text-white"
                 style="min-height:200px;"
             >
             </div>
@@ -159,11 +116,11 @@ const description = "批量邮件群发工具，支持 SMTP 配置与可视化�
             <!-- 左：收件人列表 -->
             <div class="lg:col-span-7">
                 <section
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 h-full flex flex-col border border-gray-100 dark:border-gray-700"
+                    class="bg-white dark:bg-gh-surface rounded-xl shadow-sm p-4 md:p-6 h-full flex flex-col border border-gray-100 dark:border-gh-border"
                 >
                     <div class="flex justify-between items-center mb-3">
                         <h2
-                            class="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase"
+                            class="text-sm font-bold text-gray-800 dark:text-gh-text uppercase"
                         >
                             STEP 3: 收件人
                         </h2>
@@ -178,7 +135,7 @@ const description = "批量邮件群发工具，支持 SMTP 配置与可视化�
                         placeholder="zhangsan@example.com
 lisi@example.com
 或粘贴邮箱列表"
-                        class="flex-1 border dark:border-gray-600 rounded-lg p-3 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-3"
+                        class="flex-1 border dark:border-gh-border rounded-lg p-3 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-3"
                     ></textarea>
 
                     <div class="flex gap-2">
@@ -190,7 +147,7 @@ lisi@example.com
                         />
                         <button
                             id="importBtn"
-                            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+                            class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gh-border bg-white dark:bg-gh-bg text-sm font-medium text-gray-700 dark:text-gh-text hover:bg-gray-50 dark:hover:bg-gray-600 transition"
                         >
                             📂 导入 CSV
                         </button>
@@ -208,36 +165,36 @@ lisi@example.com
             <div class="lg:col-span-5 flex flex-col gap-5">
                 <!-- 策略配置 -->
                 <section
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 dark:border-gray-700"
+                    class="bg-white dark:bg-gh-surface rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 dark:border-gh-border"
                 >
                     <h3
-                        class="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase mb-3"
+                        class="text-sm font-bold text-gray-800 dark:text-gh-text uppercase mb-3"
                     >
                         发送策略
                     </h3>
                     <div class="space-y-2">
                         <div>
                             <label
-                                class="text-xs text-gray-600 dark:text-gray-400 font-medium"
+                                class="text-xs text-gray-600 dark:text-gh-muted font-medium"
                                 >单封延迟 (ms)</label
                             >
                             <input
                                 id="cfgDelay"
                                 type="number"
                                 value="1000"
-                                class="w-full border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                class="w-full border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                             />
                         </div>
                         <div>
                             <label
-                                class="text-xs text-gray-600 dark:text-gray-400 font-medium"
+                                class="text-xs text-gray-600 dark:text-gh-muted font-medium"
                                 >最大重试次数</label
                             >
                             <input
                                 id="cfgMaxRetries"
                                 type="number"
                                 value="3"
-                                class="w-full border dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                class="w-full border dark:border-gh-border rounded-lg p-2 text-sm bg-white dark:bg-gh-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                             />
                         </div>
                     </div>
@@ -245,10 +202,10 @@ lisi@example.com
 
                 <!-- 运行监控 -->
                 <section
-                    class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 flex-1 border border-gray-100 dark:border-gray-700"
+                    class="bg-white dark:bg-gh-surface rounded-xl shadow-sm p-4 md:p-6 flex-1 border border-gray-100 dark:border-gh-border"
                 >
                     <h3
-                        class="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase mb-3"
+                        class="text-sm font-bold text-gray-800 dark:text-gh-text uppercase mb-3"
                     >
                         运行监控
                     </h3>
@@ -256,7 +213,7 @@ lisi@example.com
                     <!-- 进度条 -->
                     <div class="mb-3">
                         <div
-                            class="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400 mb-1"
+                            class="flex justify-between items-center text-xs text-gray-600 dark:text-gh-muted mb-1"
                         >
                             <span>Progress</span>
                             <span
@@ -279,10 +236,10 @@ lisi@example.com
                     <!-- 统计数字 -->
                     <div class="grid grid-cols-3 gap-2 mb-3">
                         <div
-                            class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center"
+                            class="bg-gray-50 dark:bg-gh-bg rounded-lg p-3 text-center"
                         >
                             <div
-                                class="text-xs text-gray-600 dark:text-gray-400 font-medium"
+                                class="text-xs text-gray-600 dark:text-gh-muted font-medium"
                             >
                                 Queue
                             </div>
@@ -294,10 +251,10 @@ lisi@example.com
                             </div>
                         </div>
                         <div
-                            class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center"
+                            class="bg-gray-50 dark:bg-gh-bg rounded-lg p-3 text-center"
                         >
                             <div
-                                class="text-xs text-gray-600 dark:text-gray-400 font-medium"
+                                class="text-xs text-gray-600 dark:text-gh-muted font-medium"
                             >
                                 Sending
                             </div>
@@ -309,10 +266,10 @@ lisi@example.com
                             </div>
                         </div>
                         <div
-                            class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center"
+                            class="bg-gray-50 dark:bg-gh-bg rounded-lg p-3 text-center"
                         >
                             <div
-                                class="text-xs text-gray-600 dark:text-gray-400 font-medium"
+                                class="text-xs text-gray-600 dark:text-gh-muted font-medium"
                             >
                                 Done
                             </div>
@@ -328,14 +285,14 @@ lisi@example.com
                     <!-- 日志窗 -->
                     <div
                         id="logBox"
-                        class="h-32 overflow-auto border dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-900 text-xs text-gray-700 dark:text-gray-300 space-y-1 mb-3 font-mono"
+                        class="h-32 overflow-auto border dark:border-gh-border rounded-lg p-2 bg-white dark:bg-gh-bg text-xs text-gray-700 dark:text-gh-text space-y-1 mb-3 font-mono"
                     >
                         <div class="text-gray-400">> Ready.</div>
                     </div>
 
                     <button
                         id="exportBtn"
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gh-border bg-white dark:bg-gh-bg text-sm font-medium text-gray-700 dark:text-gh-text hover:bg-gray-50 dark:hover:bg-gray-600 transition"
                     >
                         📥 导出结果
                     </button>
@@ -346,7 +303,7 @@ lisi@example.com
         <!-- Instructions Section -->
         <section class="mt-12 space-y-6">
             <div
-                class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gray-800 dark:to-gray-800 p-4 md:p-8 rounded-2xl border border-indigo-100 dark:border-gray-700"
+                class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gh-surface dark:to-gh-surface p-4 md:p-8 rounded-xl border border-indigo-100 dark:border-gh-border"
             >
                 <div
                     class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
@@ -358,7 +315,7 @@ lisi@example.com
                             📖 使用指南
                         </h3>
                         <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-1"
+                            class="text-sm text-gray-500 dark:text-gh-muted mt-1"
                         >
                             本工具需配合邮件后端服务使用（支持本地或远程部署）。
                         </p>
@@ -385,12 +342,12 @@ lisi@example.com
                 <!-- Usage Flow -->
                 <div class="space-y-6">
                     <h4
-                        class="font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                        class="font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gh-border pb-2"
                     >
                         使用流程
                     </h4>
                     <ol
-                        class="list-decimal pl-5 space-y-2 text-sm text-gray-700 dark:text-gray-300"
+                        class="list-decimal pl-5 space-y-2 text-sm text-gray-700 dark:text-gh-text"
                     >
                         <li>
                             <strong>服务端配置</strong
@@ -409,7 +366,7 @@ lisi@example.com
                             <strong>添加收件人</strong
                             >：手动输入（每行一个）或导入 CSV 文件。
                             <div
-                                class="mt-1 p-2 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono text-gray-500"
+                                class="mt-1 p-2 bg-gray-100 dark:bg-gh-bg rounded text-xs font-mono text-gray-500"
                             >
                                 格式示例:<br />
                                 email<br />
@@ -430,14 +387,14 @@ lisi@example.com
                 <!-- SMTP Configs -->
                 <div class="mt-6 space-y-6">
                     <h4
-                        class="font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                        class="font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gh-border pb-2"
                     >
                         常用 SMTP 配置参考
                     </h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <!-- QQ -->
                         <div
-                            class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600"
+                            class="bg-white dark:bg-gh-bg p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gh-border"
                         >
                             <div
                                 class="font-bold text-indigo-600 dark:text-indigo-400 mb-2"
@@ -445,7 +402,7 @@ lisi@example.com
                                 QQ 邮箱
                             </div>
                             <ul
-                                class="space-y-1 text-xs text-gray-600 dark:text-gray-300"
+                                class="space-y-1 text-xs text-gray-600 dark:text-gh-text"
                             >
                                 <li><strong>服务器:</strong> smtp.qq.com</li>
                                 <li>
@@ -458,7 +415,7 @@ lisi@example.com
                         </div>
                         <!-- Gmail -->
                         <div
-                            class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600"
+                            class="bg-white dark:bg-gh-bg p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gh-border"
                         >
                             <div
                                 class="font-bold text-red-600 dark:text-red-400 mb-2"
@@ -466,7 +423,7 @@ lisi@example.com
                                 Gmail
                             </div>
                             <ul
-                                class="space-y-1 text-xs text-gray-600 dark:text-gray-300"
+                                class="space-y-1 text-xs text-gray-600 dark:text-gh-text"
                             >
                                 <li><strong>服务器:</strong> smtp.gmail.com</li>
                                 <li>
@@ -479,7 +436,7 @@ lisi@example.com
                         </div>
                         <!-- 163 -->
                         <div
-                            class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600"
+                            class="bg-white dark:bg-gh-bg p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gh-border"
                         >
                             <div
                                 class="font-bold text-green-600 dark:text-green-400 mb-2"
@@ -487,7 +444,7 @@ lisi@example.com
                                 163 邮箱
                             </div>
                             <ul
-                                class="space-y-1 text-xs text-gray-600 dark:text-gray-300"
+                                class="space-y-1 text-xs text-gray-600 dark:text-gh-text"
                             >
                                 <li><strong>服务器:</strong> smtp.163.com</li>
                                 <li><strong>端口:</strong> 465 (SSL)</li>
@@ -501,7 +458,7 @@ lisi@example.com
                 </div>
 
                 <div
-                    class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
+                    class="mt-6 pt-6 border-t border-gray-200 dark:border-gh-border"
                 >
                     <p class="text-xs text-gray-500 text-center">
                         💡
@@ -518,10 +475,10 @@ lisi@example.com
         </section>
         <!-- PROMOTION BANNER -->
         <section
-            class="my-8 md:mt-12 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
+            class="my-8 md:mt-12 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
         >
             <div
-                class="bg-white dark:bg-gray-900 rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
+                class="bg-white dark:bg-gh-bg rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
             >
                 <div class="flex items-center gap-4">
                     <div
@@ -547,7 +504,7 @@ lisi@example.com
                             喜欢这个开源工具吗？
                         </h3>
                         <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-0.5"
+                            class="text-sm text-gray-500 dark:text-gh-muted mt-0.5"
                         >
                             你的 Star 是对我持续开发的最大鼓励！点击右侧按钮前往
                             GitHub 支持我。
@@ -628,16 +585,15 @@ lisi@example.com
         });
 
         // 2. Load Config from LocalStorage
-        const cachedConfig = JSON.parse(
-            localStorage.getItem(CONFIG_KEY) || "{}",
-        );
+        let cachedConfig: Record<string, any> = {};
+        try { cachedConfig = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}') || {}; } catch { /* Continue when browser storage is unavailable. */ }
         const fieldConfigs = {
             smtpHost: { cacheKey: "smtpHost", defaultVal: "smtp.qq.com" },
             smtpPort: { cacheKey: "smtpPort", defaultVal: "465" },
             senderEmail: { cacheKey: "senderEmail", defaultVal: "" },
             apiBaseUrl: {
                 cacheKey: "apiBaseUrl",
-                defaultVal: "https://example.com",
+                defaultVal: "",
             },
         };
 
@@ -691,6 +647,7 @@ lisi@example.com
             const statusEl = document.getElementById("connectionStatus");
             const url = getBaseUrl();
             if (!statusEl) return;
+            if (!/^https?:\/\//.test(url)) { statusEl.textContent = '请先填写有效的服务地址'; return; }
 
             statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 mr-2 animate-pulse"></span> ⏳ 连接中...`;
             statusEl.className =
@@ -947,7 +904,7 @@ lisi@example.com
         const autoCheckUrl = (
             document.getElementById("apiBaseUrl") as HTMLInputElement
         ).value;
-        if (autoCheckUrl) checkConnection();
+        if (autoCheckUrl && autoCheckUrl !== 'https://example.com') checkConnection();
     }
 </script>
 

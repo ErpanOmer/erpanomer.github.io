@@ -1,126 +1,28 @@
 ---
-import { getCollection } from "astro:content";
-import {
-    formatPostDate,
-    getDbPublishedPosts,
-    mergeStaticAndDbPosts,
-    normalizeDbPost,
-    normalizeStaticPost,
-    toPostDateTime,
-} from "@/lib/posts";
-
-const staticEntries = await getCollection("blog", ({ data }) => !data.draft);
-const staticPosts = staticEntries.map(normalizeStaticPost);
-
-let dbPosts: ReturnType<typeof normalizeDbPost>[] = [];
-try {
-    const db = Astro.locals.runtime.env.BLOG_DB;
-    const dbRows = await getDbPublishedPosts(db, { limit: 10 });
-    dbPosts = dbRows.map(normalizeDbPost);
-} catch (e) {
-    console.error("Failed to fetch D1 posts for LatestPosts:", e);
-}
-
-const posts = mergeStaticAndDbPosts(staticPosts, dbPosts).slice(0, 3);
+import type { CatalogPage } from '@/lib/public-posts';
+import { formatPostDate } from '@/lib/posts';
+import { getPostCoverUrl } from '@/lib/post-card';
+interface Props { latest: CatalogPage | null; popular: CatalogPage | null; }
+const { latest, popular } = Astro.props;
+const latestSlugs = new Set(latest?.items.map(post=>post.slug));
+const popularPosts = popular?.items.filter(post=>!latestSlugs.has(post.slug)).slice(0,3) || [];
 ---
-
-<div class="py-20 lg:py-32">
-    <!-- Section Header -->
-    <div class="text-center mb-16">
-        <p
-            class="text-sm font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3"
-        >
-            Writing
-        </p>
-        <h2
-            class="text-3xl lg:text-4xl font-bold text-zinc-900 dark:text-white"
-        >
-            我的最新博客
-        </h2>
-        <p class="text-zinc-500 dark:text-zinc-400 mt-4 max-w-2xl mx-auto">
-            技术分享、开发心得、学习笔记
-        </p>
-    </div>
-
-    <!-- Posts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {
-            posts.map((post) => (
-                <a href={`/blog/${post.slug}`} class="group block">
-                    <article class="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:border-indigo-500/50 transition-all duration-300">
-                        {post.cover && (
-                            <div class="aspect-[16/9] overflow-hidden">
-                                <img
-                                    loading="lazy"
-                                    src={post.cover}
-                                    alt={post.title}
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                            </div>
-                        )}
-                        <div class="p-6 flex-1 flex flex-col">
-                            <time
-                                class="text-sm text-zinc-500 dark:text-zinc-400"
-                                datetime={toPostDateTime(post.pubDate)}
-                            >
-                                {formatPostDate(
-                                    post.pubDate,
-                                    "zh-CN",
-                                    {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                    },
-                                    "未知日期"
-                                )}
-                            </time>
-                            <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mt-2 mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 flex-1">
-                                {post.title}
-                            </h3>
-                            <p class="blog-description-clamp text-sm text-zinc-600 dark:text-zinc-400 flex-1 leading-relaxed">
-                                {post.description}
-                            </p>
-                        </div>
-                    </article>
-                </a>
-            ))
-        }
-    </div>
-
-    {
-        posts.length === 0 && (
-            <div class="text-center py-12">
-                <p class="text-zinc-500 dark:text-zinc-400">
-                    暂无文章，敬请期待...
-                </p>
-            </div>
-        )
-    }
-
-    <!-- View All Link -->
-    {
-        posts.length > 0 && (
-            <div class="text-center mt-12">
-                <a
-                    href="/blog"
-                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white font-medium border border-zinc-200 dark:border-zinc-800 hover:border-indigo-500/50 transition-all"
-                >
-                    <span>查看全部文章</span>
-                    <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M17 8l4 4m0 0l-4 4m4-4H3"
-                        />
-                    </svg>
-                </a>
-            </div>
-        )
-    }
-</div>
+<section class="home-writing quiet-writing section-space" aria-labelledby="writing-title">
+    <div class="section-heading"><div><p class="eyebrow">WRITING</p><h2 id="writing-title">最近的记录</h2><p>技术实践，也有工作与成长中的思考。</p></div><a href="/blog" class="text-action">全部文章 ↗</a></div>
+    {latest?.source === 'static' && <p class="catalog-notice">当前仅展示静态文章，数据库统计暂不可用。</p>}
+    {latest ? <div class="writing-previews">{latest.items.slice(0,6).map(post=>{
+        const cover = getPostCoverUrl(post.cover);
+        return <article class="writing-preview">
+            {cover && <a class="writing-cover" href={`/blog/${post.slug}`} tabindex="-1" aria-hidden="true"><img src={cover} alt="" width="480" height="270" loading="lazy" decoding="async" /></a>}
+            <div class="writing-preview-content"><time datetime={post.pubDate}>{formatPostDate(post.pubDate,'sv-SE')}</time><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.description}</p></div>
+        </article>;
+    })}</div> : <p class="catalog-notice">文章暂时加载失败，<a href="/blog">前往文章列表重试 →</a></p>}
+    {latest && !latest.items.length && <p class="catalog-notice">新的思考正在路上，敬请期待。</p>}
+    {popularPosts.length > 0 && <div class="quiet-popular"><div class="subsection-heading"><h3>大家也在读</h3><a class="text-action" href="/blog?sort=views">更多热门 ↗</a></div><ol>{popularPosts.map(post=>{
+        const cover = getPostCoverUrl(post.cover);
+        return <li>
+            {cover && <a class="popular-cover" href={`/blog/${post.slug}`} tabindex="-1" aria-hidden="true"><img src={cover} alt="" width="240" height="135" loading="lazy" decoding="async" /></a>}
+            <div><a href={`/blog/${post.slug}`}>{post.title}</a><span>{post.views === null ? '—' : post.views.toLocaleString('zh-CN')} 阅读</span></div>
+        </li>;
+    })}</ol></div>}
+</section>

@@ -1,0 +1,19 @@
+---
+import { projects } from '@/data/projects';
+interface Props { wide?: boolean; }
+const { wide = false } = Astro.props;
+---
+<div class:list={['portfolio-grid', { 'portfolio-grid-wide': wide }]} data-projects-grid>
+    {projects.map(project=><a href={project.link || '#'} data-message={project.message} target={project.link.startsWith('http')?'_blank':undefined} rel={project.link.startsWith('http')?'noopener noreferrer':undefined} class="portfolio-card">
+        <div class="portfolio-image"><img src={project.image} alt={project.title} width="640" height="360" loading="lazy" decoding="async" /></div>
+        <div class="portfolio-copy"><p class="eyebrow">{project.type}</p><h3>{project.title}</h3><p class="portfolio-description">{project.description}</p><div class="portfolio-tags">{[...new Set(project.tags)].map(tag=><span>{tag}</span>)}</div></div>
+    </a>)}
+</div>
+<script>
+    document.querySelectorAll<HTMLElement>('[data-projects-grid]').forEach(grid=>{
+        grid.addEventListener('click',event=>{
+            const link=(event.target as Element).closest<HTMLAnchorElement>('a[data-message]');
+            if(link?.dataset.message){event.preventDefault();alert(link.dataset.message);}
+        });
+    });
+</script>

@@ -1,34 +1,18 @@
 import rss from '@astrojs/rss';
-import { getCollection } from 'astro:content';
-import { getDbPublishedPosts, mergeStaticAndDbPosts, normalizeDbPost, normalizeStaticPost, parsePostDate } from '@/lib/posts';
+import { getCatalog } from '@/lib/blog-catalog';
 
 export async function GET(context) {
-    const blog = await getCollection('blog', ({ data }) => !data.draft);
-    const staticPosts = blog.map(normalizeStaticPost);
-
-    // Fetch D1 published posts
-    let dbPosts = [];
     try {
-        const db = context.locals.runtime.env.BLOG_DB;
-        const dbRows = await getDbPublishedPosts(db, { limit: 200 });
-        dbPosts = dbRows.map(normalizeDbPost);
-    } catch (e) {
-        console.error('RSS: Failed to fetch D1 posts:', e);
+        const page = await getCatalog(context.locals.runtime?.env?.BLOG_DB, { q:'', tag:'', sort:'latest', includeMeta:false }, 50);
+        return rss({
+            title: 'ErpanOmer Blog',
+            description: '前端技术官 · 前端工程、Shopify、Cloudflare 与 AI 实践（最新 50 篇）',
+            site: context.site,
+            items: page.items.map(post=>({ title:post.title,pubDate:new Date(post.pubDate),description:post.description,link:`/blog/${post.slug}/` })),
+            customData: '<language>zh-cn</language>',
+        });
+    } catch (error) {
+        console.error('RSS catalog query:',error);
+        return new Response('Feed temporarily unavailable', { status:503,headers:{'Cache-Control':'no-store'} });
     }
-
-    // Merge and deduplicate
-    const allPosts = mergeStaticAndDbPosts(staticPosts, dbPosts);
-
-    return rss({
-        title: 'ErpanOmer Blog',
-        description: '资深 Web 前端工程师，专注于 Shopify 独立站开发与 Cloudflare 边缘计算。',
-        site: context.site,
-        items: allPosts.map((post) => ({
-            title: post.title,
-            pubDate: parsePostDate(post.pubDate) || new Date(),
-            description: post.description,
-            link: `/blog/${post.slug}/`,
-        })),
-        customData: `<language>zh-cn</language>`,
-    });
 }

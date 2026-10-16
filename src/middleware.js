@@ -119,7 +119,7 @@ async function viewCounterMiddleware(context, next) {
     const isKnownContentRequest = isHtmlRequest && isKnownContentPath(pathname);
     const isStatsApiRequest = pathname.startsWith("/api/stats/");
 
-    locals.viewCount = 0;
+    locals.viewCount = null;
 
     // visitorId is used by page render and /api/stats interactions.
     if (isKnownContentRequest || isStatsApiRequest) {
@@ -139,8 +139,6 @@ async function viewCounterMiddleware(context, next) {
         } catch (error) {
             console.error("KV Error:", error);
         }
-    } else if (!env?.VIEWS && isKnownContentRequest) {
-        locals.viewCount = 8888; // Dev fallback
     }
 
     const response = await next();

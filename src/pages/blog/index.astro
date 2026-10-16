@@ -1,221 +1,67 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getCollection } from "astro:content";
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageIntro from '@/components/PageIntro.astro';
+import { getCatalog } from '@/lib/blog-catalog';
+import { CatalogInputError, parseCatalogOptions, type CatalogPage } from '@/lib/public-posts';
+import { renderPostCard } from '@/lib/post-card';
 
-import { getAllPostStats } from "@/lib/db";
-import {
-    formatPostDate,
-    getDbPublishedPosts,
-    mergeStaticAndDbPosts,
-    normalizeDbPost,
-    normalizeStaticPost,
-    toPostDateTime,
-} from "@/lib/posts";
-
-// Get static Markdown posts (non-draft)
-const staticEntries = (await getCollection("blog", ({ data }) => !data.draft));
-const staticPosts = staticEntries.map(normalizeStaticPost);
-
-// Fetch D1 published posts
-const db = Astro.locals.runtime.env.BLOG_DB;
-let dbPosts: ReturnType<typeof normalizeDbPost>[] = [];
+let options;
+let page: CatalogPage = { items: [], nextCursor: null, hasMore: false, source: 'combined' };
+let error = '';
 try {
-    const dbRows = await getDbPublishedPosts(db, { limit: 200 });
-    dbPosts = dbRows.map(normalizeDbPost);
-} catch (e) {
-    // D1 may not have new columns yet during migration; gracefully degrade
-    console.error('Failed to fetch D1 posts for blog index:', e);
+    options = { ...parseCatalogOptions(Astro.url.searchParams), includeMeta: true };
+    page = await getCatalog(Astro.locals.runtime?.env?.BLOG_DB, options);
+} catch (err) {
+    Astro.response.status = err instanceof CatalogInputError ? 400 : 503;
+    error = err instanceof CatalogInputError ? err.message : '文章暂时加载失败，请稍后重试。';
+    if (!(err instanceof CatalogInputError)) console.error('Blog page query failed:', err);
 }
-
-// Merge and sort
-const posts = mergeStaticAndDbPosts(staticPosts, dbPosts);
-
-// Fetch stats for all posts in one batch efficiently
-let postStats: Record<string, { views: number; likes: number }> = {};
-try {
-    postStats = await getAllPostStats(db);
-} catch (e) {
-    console.error('Failed to fetch post stats for blog index:', e);
-}
+options ??= { q: '', tag: '', sort: 'latest' as const, includeMeta: true };
+const meta = page.meta;
+const count = (value: number | null | undefined) => value == null ? '—' : new Intl.NumberFormat('zh-CN').format(value);
+const nextParams = new URLSearchParams(Astro.url.searchParams);
+nextParams.delete('includeMeta');
+if (page.nextCursor) nextParams.set('cursor',page.nextCursor);
+const initial = JSON.stringify({ page, options, error }).replace(/</g,'\\u003c');
 ---
-
-<BaseLayout
-    title="博客"
-    description="技术分享、开发心得、学习笔记 - ErpanOmer 的技术博客"
->
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-        <!-- Header -->
-        <div class="mb-12">
-            <a
-                href="/"
-                class="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white mb-6 transition-colors"
-            >
-                <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                <span>返回首页</span>
-            </a>
-            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-3">博客</h1>
-            <p class="text-base text-zinc-400">技术分享、开发心得、学习笔记</p>
-        </div>
-
-        <!-- Posts List -->
-        <div class="space-y-8">
-            {
-                posts.map((post) => (
-                    <a href={`/blog/${post.slug}`} class="group block">
-                        <article class="flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 -mx-4 rounded-xl hover:bg-zinc-900/50 transition-colors">
-                            {post.cover && (
-                                <div class="aspect-video flex-[0.5] flex-shrink-0 rounded-lg overflow-hidden bg-zinc-800">
-                                    <img
-                                        src={post.cover}
-                                        alt={post.title}
-                                        loading="lazy"
-                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                </div>
-                            )}
-                            <div class="flex-1 min-w-0 flex flex-col h-full">
-                                <div>
-                                    <time
-                                        class="text-sm text-zinc-500"
-                                        datetime={toPostDateTime(post.pubDate)}
-                                    >
-                                        {formatPostDate(
-                                            post.pubDate,
-                                            "zh-CN",
-                                            {
-                                                year: "numeric",
-                                                month: "short",
-                                                day: "numeric",
-                                            },
-                                            "未知日期",
-                                        )}
-                                    </time>
-                                    <h2 class="text-base sm:text-lg font-semibold text-white mt-1.5 mb-1.5 group-hover:text-indigo-400 transition-colors leading-snug">
-                                        {post.title}
-                                    </h2>
-                                    <p class="blog-description-clamp text-sm text-zinc-400 leading-relaxed">
-                                        {post.description}
-                                    </p>
-                                </div>
-                                
-                                <div class="mt-auto pt-4 flex items-end justify-between">
-                                    {post.tags.length > 0 ? (
-                                        <div class="flex flex-wrap gap-1.5">
-                                            {post.tags
-                                                .slice(0, 3)
-                                                .map((tag) => (
-                                                    <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                        </div>
-                                    ) : <div></div>}
-
-                                    <!-- Views & Likes -->
-                                    <div class="flex items-center gap-3 text-xs font-medium text-zinc-500 shrink-0">
-                                        <div class="flex items-center gap-1">
-                                            <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                            <span>{postStats[post.slug]?.views || post.views || 0}</span>
-                                        </div>
-                                        <div class="flex items-center gap-1">
-                                            <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-red-500/70 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                            <span>{postStats[post.slug]?.likes || post.likes || 0}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </article>
-                    </a>
-                ))
-            }
-        </div>
-        <section
-            class="my-8 md:mt-12 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
-        >
-            <div
-                class="bg-white dark:bg-gray-900 rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
-            >
-                <div class="flex items-center gap-4">
-                    <div
-                        class="hidden sm:flex w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/30 items-center justify-center flex-shrink-0"
-                    >
-                        <svg
-                            class="w-6 h-6 text-indigo-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            ><path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.783.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                            ></path></svg
-                        >
-                    </div>
-                    <div>
-                        <h3
-                            class="text-base font-bold text-gray-900 dark:text-white"
-                        >
-                            喜欢我的系列 Blog 吗？你也可以部署一份属于你的第三空间！
-                        </h3>
-                        <p
-                            class="text-sm text-gray-500 dark:text-gray-400 mt-0.5"
-                        >
-                            详细的 🚀<a class="text-yellow-400 underline inline-block" href="https://github.com/ErpanOmer/erpanomer.github.io/blob/master/README.md" target="_blank">部署文档</a> 以帮你安排好！ 你的 Star 是对我持续开发的最大鼓励！点击右侧按钮前往
-                            GitHub 支持我。
-                        </p>
-                    </div>
+<BaseLayout title="文章 · 前端技术官" description="ErpanOmer 的前端工程、AI 开发与职业思考。按标签探索文章，搜索你的下一个答案。">
+    <div class="site-container blog-shell" id="blog-app">
+        <PageIntro eyebrow="ERPANOMER / WRITING" title="文章与思考。" description="关于前端工程、AI 开发与职业成长。记录实践、判断，以及还在探索的问题。" />
+        <dl class="catalog-stats" aria-label="本站文章统计">
+            <div><dt>本站文章</dt><dd data-stat="total">{count(meta?.total)}</dd></div>
+            <div><dt>累计阅读</dt><dd data-stat="views">{count(meta?.views)}</dd></div>
+            <div><dt>收获点赞</dt><dd data-stat="likes">{count(meta?.likes)}</dd></div>
+            <div><dt>内容标签</dt><dd data-stat="tagCount">{count(meta?.tagCount)}</dd></div>
+        </dl>
+        <div class="catalog-workspace">
+            <aside class="tag-sidebar" aria-label="文章标签">
+                <div class="sidebar-heading"><h2>按兴趣探索</h2><span>TAGS</span></div>
+                <div id="tag-list" class="catalog-tags">
+                    <a href="/blog" class:list={['catalog-tag', { active: !options.tag }]} data-tag="">全部文章 <span>{count(meta?.total)}</span></a>
+                    {meta?.tags.map((tag,index)=><a href={`/blog?tag=${encodeURIComponent(tag.name)}`} class:list={['catalog-tag', {active:options.tag===tag.name, 'extra-tag':index>=12}]} data-tag={tag.name} aria-current={options.tag===tag.name?'true':undefined}>{tag.name}<span>{tag.count}</span></a>)}
                 </div>
-                <a
-                    href="https://github.com/ErpanOmer/erpanomer.github.io/"
-                    target="_blank"
-                    class="min-w-44 group relative flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold transition-all hover:scale-105 hover:shadow-lg active:scale-95 whitespace-nowrap overflow-hidden"
-                >
-                    <div
-                        class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-hover:opacity-10 transition-opacity"
-                    >
-                    </div>
-                    <svg
-                        class="min-w-5 w-5 h-5 text-yellow-400 fill-current"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"
-                        ></path>
-                    </svg>
-                    <span>欢迎 Star !</span>
-                    <svg
-                        class="min-w-4 w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        ><path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg
-                    >
-                </a>
-            </div>
-        </section>
-
-        {
-            posts.length === 0 && (
-                <div class="text-center py-16">
-                    <p class="text-zinc-500">暂无文章</p>
-                </div>
-            )
-        }
+                <button type="button" class="text-action tag-expand" id="expand-tags" aria-expanded="false" hidden={(meta?.tags.length || 0)<=12}>展开全部标签</button>
+                <p class="sidebar-note">每一篇文章，都是一次思考的存档。</p>
+                <a class="text-action" href="/rss.xml" target="_blank">通过 RSS 订阅 ↗</a>
+            </aside>
+            <section class="catalog-main" aria-label="文章列表">
+                <form class="catalog-toolbar" id="catalog-form" action="/blog" method="get" role="search">
+                    <label class="search-field"><span class="sr-only">搜索文章</span><span aria-hidden="true">⌕</span><input type="search" name="q" id="post-search" placeholder="搜索标题、摘要或标签…" value={options.q} maxlength="100" autocomplete="off" /></label>
+                    <input type="hidden" name="tag" id="selected-tag" value={options.tag} />
+                    <label class="sort-field"><span class="sr-only">文章排序</span><select name="sort" id="post-sort"><option value="latest" selected={options.sort==='latest'}>最新发布</option><option value="views" selected={options.sort==='views'}>最多阅读</option><option value="likes" selected={options.sort==='likes'}>最多点赞</option></select></label>
+                    <button class="button-secondary search-submit" type="submit">搜索</button>
+                </form>
+                <div class="catalog-result-heading"><p id="result-count">{options.tag ? `${options.tag} · ` : ''}{meta ? `${meta.matchingTotal} 篇文章` : '文章列表'}</p><a href="/blog" id="reset-filters" class="text-action" hidden={!options.q&&!options.tag&&options.sort==='latest'}>重置筛选</a></div>
+                <p class="catalog-notice" id="catalog-notice" hidden={page.source!=='static'}>当前展示本地静态文章，阅读与点赞统计暂不可用。</p>
+                <p id="catalog-error" class="catalog-error" role="alert" hidden={!error}>{error} <a href="/blog">重新加载列表</a></p>
+                <div id="post-list" class="post-list" aria-busy="false">{page.items.map(post=><Fragment set:html={renderPostCard(post)} />)}</div>
+                <div class="catalog-empty" id="catalog-empty" hidden={!!page.items.length||!!error}><h2>没有找到相关文章</h2><p>试试其他关键词，或换一个感兴趣的标签。</p><a class="text-action" href="/blog">查看全部文章 →</a></div>
+                <div class="load-zone" id="load-zone"><a class="button-secondary load-more" id="load-more" href={`?${nextParams}`} hidden={!page.hasMore}>加载更多文章</a><p id="load-status" role="status" aria-live="polite">{!page.hasMore&&page.items.length?'已经读到这里的全部文章了。':''}</p><div id="load-sentinel" aria-hidden="true"></div></div>
+            </section>
+        </div>
     </div>
+    <script type="application/json" id="catalog-initial" set:html={initial} />
+    <script>
+        import '@/scripts/blog-list';
+    </script>
 </BaseLayout>

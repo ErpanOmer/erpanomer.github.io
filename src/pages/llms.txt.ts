@@ -1,25 +1,23 @@
-import { getCollection } from "astro:content";
-import { projects } from "@/data/projects";
-import { getDbPublishedPosts, normalizeDbPost, normalizeStaticPost, mergeStaticAndDbPosts } from "@/lib/posts";
+import { projects } from '@/data/projects';
+import { getStaticSummaries } from '@/lib/blog-catalog';
+import { queryPublicPosts, type PostSummary } from '@/lib/public-posts';
 
 export async function GET(context: any) {
-    const blogEntries = await getCollection("blog", ({ data }) => {
-        return !data.draft;
-    });
-    const staticPosts = blogEntries.map(normalizeStaticPost);
-
-    // Fetch D1 published posts
-    let dbPosts: ReturnType<typeof normalizeDbPost>[] = [];
+    const staticPosts = await getStaticSummaries();
+    const allPosts: PostSummary[] = [];
+    let cursor: string | undefined;
     try {
-        const db = context.locals.runtime.env.BLOG_DB;
-        const dbRows = await getDbPublishedPosts(db, { limit: 200 });
-        dbPosts = dbRows.map(normalizeDbPost);
-    } catch (e) {
-        console.error('llms.txt: Failed to fetch D1 posts:', e);
+        do {
+            const page = await queryPublicPosts(context.locals.runtime?.env?.BLOG_DB, staticPosts,
+                { q:'',tag:'',sort:'latest',includeMeta:false,cursor },
+                { allowMissingTable:import.meta.env.DEV,limit:100 });
+            allPosts.push(...page.items);
+            cursor = page.nextCursor || undefined;
+        } while (cursor);
+    } catch (error) {
+        console.error('LLMs index catalog query:',error);
+        return new Response('Index temporarily unavailable',{status:503,headers:{'Cache-Control':'no-store'}});
     }
-
-    // Merge and deduplicate
-    const allPosts = mergeStaticAndDbPosts(staticPosts, dbPosts);
 
     // projects is a static array imported from "@/data/projects"
 

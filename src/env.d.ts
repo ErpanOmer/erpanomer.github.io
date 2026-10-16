@@ -4,6 +4,7 @@
 
 type KVNamespace = import("@cloudflare/workers-types").KVNamespace;
 type Fetcher = import("@cloudflare/workers-types").Fetcher;
+type D1Database = import("@cloudflare/workers-types").D1Database;
 type ENV = {
     VIEWS: KVNamespace;
     BLOG_DB: D1Database;
@@ -16,7 +17,7 @@ type Runtime = import("@astrojs/cloudflare").Runtime<ENV>;
 
 declare namespace App {
     interface Locals extends Runtime {
-        viewCount?: number;
+        viewCount?: number | null;
         visitorId?: string;
     }
 }

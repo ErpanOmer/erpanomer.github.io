@@ -1,105 +1,25 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import Achievements from "../components/Achievements.astro";
-import Projects from "../components/Projects.astro";
-import LatestPosts from "../components/LatestPosts.astro";
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/Hero.astro';
+import Achievements from '@/components/Achievements.astro';
+import Projects from '@/components/Projects.astro';
+import LatestPosts from '@/components/LatestPosts.astro';
+import { fetchSocialStats } from '@/lib/social-stats';
+import { getStaticSummaries } from '@/lib/blog-catalog';
+import { queryPublicPosts } from '@/lib/public-posts';
+
+const env = Astro.locals.runtime?.env;
+const staticPosts = await getStaticSummaries();
+const [socialStats, latestResult, popularResult] = await Promise.all([
+    fetchSocialStats({ transport: import.meta.env.PROD ? 'service' : 'public', serviceBinding: import.meta.env.PROD ? env?.GET_FANS_WORKER : null }),
+    queryPublicPosts(env?.BLOG_DB, staticPosts, { q:'',tag:'',sort:'latest',includeMeta:true }, { allowMissingTable:import.meta.env.DEV,limit:6 }).catch(error=>{console.error('Homepage latest posts:',error);return null;}),
+    queryPublicPosts(env?.BLOG_DB, staticPosts, { q:'',tag:'',sort:'views',includeMeta:false }, { allowMissingTable:import.meta.env.DEV,limit:9 }).catch(error=>{console.error('Homepage popular posts:',error);return null;}),
+]);
 ---
-
-<BaseLayout>
-    <section class="max-w-6xl mx-auto px-4 sm:px-6">
-        <Hero />
-    </section>
-
-    <div class="border-t border-gh-border"></div>
-
-    <section class="max-w-6xl mx-auto px-4 sm:px-6">
-        <LatestPosts />
-    </section>
-
-    <div class="border-t border-gh-border"></div>
-
-    <section class="max-w-6xl mx-auto px-4 sm:px-6">
-        <Achievements />
-    </section>
-
-    <div class="border-t border-gh-border"></div>
-
-    <section class="max-w-6xl mx-auto px-4 sm:px-6">
-        <Projects />
-    </section>
-
-    <section
-        class="max-w-screen-lg mx-4 md:mx-auto mb-12 md:mb-20 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 p-[1px] shadow-xl shadow-indigo-500/20"
-    >
-        <div
-            class="bg-white dark:bg-gray-900 rounded-[15px] p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6"
-        >
-            <div class="flex items-center gap-4">
-                <div
-                    class="hidden sm:flex w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/30 items-center justify-center flex-shrink-0"
-                >
-                    <svg
-                        class="w-6 h-6 text-indigo-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        ><path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.783.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                        ></path></svg
-                    >
-                </div>
-                <div>
-                    <h3
-                        class="text-base font-bold text-gray-900 dark:text-white"
-                    >
-                        喜欢我的个人网站吗？你也可以部署一份属于你的第三空间！
-                    </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                        详细的 🚀<a
-                            class="text-yellow-400 underline inline-block"
-                            href="https://github.com/ErpanOmer/erpanomer.github.io/blob/master/README.md"
-                            target="_blank"
-                            rel="noopener noreferrer">部署文档</a
-                        > 以帮你安排好！ 你的 Star 是对我持续开发的最大鼓励！点击右侧按钮前往
-                        GitHub 支持我。
-                    </p>
-                </div>
-            </div>
-            <a
-                href="https://github.com/ErpanOmer/erpanomer.github.io/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="min-w-44 group relative flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold transition-all hover:scale-105 hover:shadow-lg active:scale-95 whitespace-nowrap overflow-hidden"
-            >
-                <div
-                    class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-hover:opacity-10 transition-opacity"
-                >
-                </div>
-                <svg
-                    class="min-w-5 w-5 h-5 text-yellow-400 fill-current"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"
-                    ></path>
-                </svg>
-                <span>欢迎 Star !</span>
-                <svg
-                    class="min-w-4 w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    ><path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg
-                >
-            </a>
-        </div>
-    </section>
+<BaseLayout description="ErpanOmer，前端技术官。分享前端工程、Shopify、Cloudflare 与 AI 实践，用文章、开源项目和产品记录持续构建的过程。">
+    <div class="site-container"><Hero /></div>
+    <div class="section-divider"><div class="site-container"><LatestPosts latest={latestResult} popular={popularResult} /></div></div>
+    <div class="section-divider"><div class="site-container"><Achievements socialStats={socialStats} websiteStats={latestResult?.meta ?? null} siteVisits={Astro.locals.viewCount ?? null} /></div></div>
+    <div class="section-divider" id="selected-projects"><div class="site-container"><Projects /></div></div>
+    <section class="site-container contact-section" aria-labelledby="contact-title"><div><p class="eyebrow">LET'S CONNECT</p><h2 id="contact-title">好的想法，值得一起聊聊。</h2><p>关于技术实践、产品构建，或一篇让你产生共鸣的文章。</p></div><div class="contact-links"><a class="button-primary" href="mailto:erpanomer@gmail.com">给我写邮件 ↗</a><a class="text-action" href="https://github.com/ErpanOmer" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a class="text-action" href="/rss.xml">RSS 订阅 ↗</a></div></section>
 </BaseLayout>

@@ -3,7 +3,7 @@ const { viewCount } = Astro.props;
 ---
 
 <footer class="border-t border-gh-border py-8 mt-auto bg-gh-bg">
-    <div class="max-w-6xl mx-auto px-6">
+    <div class="site-container">
         <div
             class="flex flex-col sm:flex-row items-center justify-between gap-4"
         >
@@ -39,7 +39,7 @@ const { viewCount } = Astro.props;
                     <span
                         >Total Views: <span
                             class="text-white font-medium font-mono"
-                            >{viewCount.toLocaleString()}</span
+                            >{viewCount == null ? '—' : viewCount.toLocaleString()}</span
                         ></span
                     >
                 </p>
