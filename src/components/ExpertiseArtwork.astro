@@ -1,0 +1,58 @@
+---
+interface Props {
+    kind: 'frontend' | 'edge' | 'desktop' | 'commerce';
+}
+const { kind } = Astro.props;
+---
+
+<svg viewBox="0 0 180 140" fill="none" aria-hidden="true" focusable="false">
+    {kind === 'frontend' && <>
+        <path d="m22 82 68-30 68 30-68 31Z" fill="#141923" stroke="currentColor" stroke-opacity=".35" />
+        <path d="m22 63 68-30 68 30-68 31Z" fill="#171c2b" stroke="currentColor" stroke-opacity=".55" />
+        <path d="m22 44 68-30 68 30-68 31Z" fill="#20253c" stroke="currentColor" />
+        <path d="m49 44 41-18 41 18-41 19Z" fill="currentColor" fill-opacity=".13" stroke="currentColor" stroke-opacity=".6" />
+        <path d="m69 44 21-9 21 9-21 10Z" fill="currentColor" fill-opacity=".35" />
+        <path d="M90 75v38M22 44v38m136-38v38" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="2 4" />
+        <circle cx="90" cy="44" r="3" fill="currentColor" />
+        <circle cx="90" cy="113" r="2.5" fill="currentColor" />
+        <path d="m35 119 55 13 55-13" stroke="currentColor" stroke-opacity=".15" />
+    </>}
+    {kind === 'edge' && <>
+        <ellipse cx="90" cy="70" rx="69" ry="47" stroke="currentColor" stroke-opacity=".22" stroke-dasharray="3 5" />
+        <path d="m35 34 55 36 55-36M35 106l55-36 55 36M18 70h144" stroke="currentColor" stroke-opacity=".4" />
+        <rect x="66" y="46" width="48" height="48" rx="12" fill="#182635" stroke="currentColor" />
+        <path d="m93 56-13 17h10l-3 12 14-18H90l3-11Z" fill="currentColor" fill-opacity=".85" />
+        {[{x:35,y:34},{x:145,y:34},{x:35,y:106},{x:145,y:106},{x:18,y:70},{x:162,y:70}].map(({x,y}) => <>
+            <circle cx={x} cy={y} r="7" fill="#151f2b" stroke="currentColor" stroke-opacity=".6" />
+            <circle cx={x} cy={y} r="2" fill="currentColor" />
+        </>)}
+    </>}
+    {kind === 'desktop' && <>
+        <rect x="19" y="20" width="132" height="91" rx="8" fill="#181c2a" stroke="currentColor" stroke-opacity=".7" />
+        <path d="M19 38h132" stroke="currentColor" stroke-opacity=".25" />
+        <circle cx="30" cy="29" r="2" fill="currentColor" fill-opacity=".7" />
+        <circle cx="38" cy="29" r="2" fill="currentColor" fill-opacity=".4" />
+        <circle cx="46" cy="29" r="2" fill="currentColor" fill-opacity=".25" />
+        <rect x="29" y="49" width="25" height="49" rx="3" fill="currentColor" fill-opacity=".09" />
+        <path d="M36 59h11m-11 8h8m-8 8h11M66 56h51m-51 9h35" stroke="currentColor" stroke-opacity=".4" stroke-linecap="round" />
+        <rect x="99" y="69" width="63" height="56" rx="7" fill="#202239" stroke="currentColor" />
+        <path d="m120 87-8 7 8 7m19-14 8 7-8 7m-7-18-6 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M38 124h45" stroke="currentColor" stroke-opacity=".2" stroke-linecap="round" />
+    </>}
+    {kind === 'commerce' && <>
+        <rect x="28" y="18" width="108" height="105" rx="8" fill="#162622" stroke="currentColor" stroke-opacity=".65" />
+        <path d="M28 36h108" stroke="currentColor" stroke-opacity=".25" />
+        <circle cx="38" cy="27" r="2" fill="currentColor" fill-opacity=".6" />
+        <path d="M47 27h26" stroke="currentColor" stroke-opacity=".3" stroke-linecap="round" />
+        <path d="m64 63-3 31h42l-3-31H64Z" fill="currentColor" fill-opacity=".12" stroke="currentColor" />
+        <path d="M73 68V58a9 9 0 0 1 18 0v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <rect x="104" y="78" width="56" height="35" rx="6" fill="#20352e" stroke="currentColor" />
+        <circle cx="119" cy="96" r="6" fill="currentColor" fill-opacity=".16" />
+        <path d="m116 96 2 2 4-4m8-2h19m-19 8h13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M62 107h36" stroke="currentColor" stroke-opacity=".3" stroke-linecap="round" />
+    </>}
+</svg>
+
+<style>
+    svg { display:block; width:100%; height:auto; overflow:visible; }
+</style>

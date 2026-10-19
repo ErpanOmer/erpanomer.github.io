@@ -12,9 +12,15 @@ const popularPosts = popular?.items.filter(post=>!latestSlugs.has(post.slug)).sl
     {latest?.source === 'static' && <p class="catalog-notice">当前仅展示静态文章，数据库统计暂不可用。</p>}
     {latest ? <div class="writing-previews">{latest.items.slice(0,6).map(post=>{
         const cover = getPostCoverUrl(post.cover);
-        return <article class="writing-preview">
-            {cover && <a class="writing-cover" href={`/blog/${post.slug}`} tabindex="-1" aria-hidden="true"><img src={cover} alt="" width="480" height="270" loading="lazy" decoding="async" /></a>}
-            <div class="writing-preview-content"><time datetime={post.pubDate}>{formatPostDate(post.pubDate,'sv-SE')}</time><h3><a href={`/blog/${post.slug}`}>{post.title}</a></h3><p>{post.description}</p></div>
+        return <article class:list={['writing-preview', { 'writing-preview-text': !cover }]}>
+            <a class="writing-card-link" href={`/blog/${post.slug}`}>
+                {cover && <div class="writing-cover"><img src={cover} alt="" width="640" height="360" loading="lazy" decoding="async" /></div>}
+                <div class="writing-preview-content">
+                    <div class="writing-meta"><time datetime={post.pubDate}>{formatPostDate(post.pubDate,'sv-SE')}</time><span aria-hidden="true">↗</span></div>
+                    <h3 title={post.title}>{post.title}</h3>
+                    <p>{post.description}</p>
+                </div>
+            </a>
         </article>;
     })}</div> : <p class="catalog-notice">文章暂时加载失败，<a href="/blog">前往文章列表重试 →</a></p>}
     {latest && !latest.items.length && <p class="catalog-notice">新的思考正在路上，敬请期待。</p>}

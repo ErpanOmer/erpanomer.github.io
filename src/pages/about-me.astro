@@ -1,10 +1,10 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import PageIntro from '@/components/PageIntro.astro';
 import { getCatalog } from '@/lib/blog-catalog';
 import { combineInfluenceStats } from '@/lib/influence';
 import ContentPlatformGrid from "@/components/ContentPlatformGrid.astro";
 import Giscus from "@/components/Giscus.astro";
+import ExpertiseArtwork from "@/components/ExpertiseArtwork.astro";
 import {
     fetchSocialStats,
     formatCompactCount,
@@ -40,7 +40,7 @@ const proofStats = [
         exact: combinedStats.coverage.article_count > 0
             ? formatExactCount(combinedStats.totals.article_count)
             : "数据暂时不可用",
-        label: "累计发布",
+        label: "跨平台发布",
     },
     {
         value: combinedStats.coverage.follower_count > 0
@@ -56,31 +56,39 @@ const proofStats = [
 const expertise = [
     {
         index: "01",
+        kind: "frontend" as const,
+        label: "FRONTEND",
         title: "复杂前端架构",
         description:
             "面向大型 Web 应用设计可演进的 React / Vue / TypeScript 架构，兼顾性能、研发效率与长期维护成本。",
-        tags: ["React", "Vue", "TypeScript", "SSR", "Design System"],
+        tags: ["React / Vue", "TypeScript", "SSR"],
     },
     {
         index: "02",
+        kind: "edge" as const,
+        label: "EDGE & BACKEND",
         title: "全栈与边缘系统",
         description:
             "使用 Node.js、Cloudflare Workers 与 D1 构建高性能服务，完成从界面到服务端的完整交付。",
-        tags: ["Node.js", "Cloudflare", "Workers", "D1", "API"],
+        tags: ["Node.js", "Cloudflare Workers", "D1"],
     },
     {
         index: "03",
+        kind: "desktop" as const,
+        label: "DESKTOP",
         title: "跨平台桌面应用",
         description:
             "覆盖 Electron 应用架构、原生能力集成、自动更新、CI/CD 与多平台发布链路。",
-        tags: ["Electron", "Desktop", "Auto Update", "CI/CD"],
+        tags: ["Electron", "自动更新", "CI/CD"],
     },
     {
         index: "04",
+        kind: "commerce" as const,
+        label: "COMMERCE",
         title: "Shopify 商业交付",
         description:
             "提供主题、应用和 Headless 定制能力，让技术方案直接服务于体验、转化与业务增长。",
-        tags: ["Shopify", "Liquid", "Hydrogen", "Oxygen", "Commerce"],
+        tags: ["Shopify", "Liquid", "Hydrogen"],
     },
 ];
 ---
@@ -90,94 +98,65 @@ const expertise = [
     description="ErpanOmer，资深 Web 前端专家，专注复杂前端架构、Node.js、Electron、Shopify 与 Cloudflare 边缘系统。"
 >
     <div class="site-container page-shell about-page">
-        <PageIntro eyebrow="ERPANOMER / ABOUT" title="构建与分享，是我的日常。" description="前端技术官 · ErpanOmer。关注技术本身，也关注它如何解决真实的问题。" />
-        <section class="about-profile"><img src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_200,h_200/f_auto/q_auto/me_kknemi" alt="ErpanOmer" width="96" height="96" /><div><h2>资深 Web 前端工程师</h2><p>十余年 Web 工程经验，长期实践前端架构、Node.js 服务、Electron 桌面应用、Shopify 商业项目与 Cloudflare 边缘系统。擅长把复杂需求收敛为稳定、清晰、可持续演进的产品。</p><div class="about-links"><a class="text-action" href="https://github.com/ErpanOmer" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a class="text-action" href="mailto:erpanomer@gmail.com">联系我 ↗</a></div></div></section>
-
-        <dl class="mt-6 grid grid-cols-2 overflow-hidden rounded-xl border border-gh-border bg-gh-surface sm:grid-cols-4">
-            {
-                proofStats.map((stat) => (
-                    <div class="border-b border-r border-gh-border px-5 py-5 even:border-r-0 [&:nth-last-child(-n+2)]:border-b-0 sm:border-b-0 sm:px-6 sm:py-6 sm:[&:nth-child(2)]:border-r sm:[&:last-child]:border-r-0">
-                        <dd
-                            class="text-2xl font-extrabold tracking-tight tabular-nums text-white sm:text-3xl"
-                            title={stat.exact}
-                            aria-label={`${stat.label}：${stat.exact}`}
-                        >
-                            {stat.value}
-                        </dd>
-                        <dt class="mt-1.5 text-xs font-semibold text-gh-muted sm:text-sm">
-                            {stat.label}
-                        </dt>
-                    </div>
-                ))
-            }
-        </dl>
-
-        <section class="py-16 sm:py-20" aria-labelledby="expertise-title">
-            <div class="mb-7 sm:flex sm:items-end sm:justify-between">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
-                        Core Expertise
-                    </p>
-                    <h2
-                        id="expertise-title"
-                        class="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl"
-                    >
-                        核心能力
-                    </h2>
+        <header class="about-intro" aria-labelledby="about-title">
+            <div class="about-intro-top"><p class="hero-kicker">关于我</p><a href="/" class="text-action">返回首页 <span aria-hidden="true">↗</span></a></div>
+            <div class="about-intro-body">
+                <div class="about-identity">
+                    <img src="https://res.cloudinary.com/dkh81cvyt/image/upload/c_fill,w_200,h_200/f_auto/q_auto/me_kknemi" alt="ErpanOmer 的头像" width="64" height="64" />
+                    <h1 id="about-title">ErpanOmer<span aria-hidden="true">.</span></h1>
+                    <p>前端技术官 / Web 前端工程师</p>
                 </div>
-                <p class="mt-3 max-w-xl text-sm leading-6 text-gh-muted sm:mt-0 sm:text-right">
-                    从浏览器到服务端，从桌面软件到商业独立站。
-                </p>
+                <div class="about-story">
+                    <p class="about-lead">我是一名前端工程师，<br class="about-lead-break" />有十余年 Web 工程经验。</p>
+                    <p>工作涉及复杂前端架构、Node.js 服务、Electron 桌面应用，以及 Shopify 与 Cloudflare。关注技术如何解决真实问题，也关注产品的长期维护与演进。</p>
+                    <p>这里记录我的工程实践、独立作品和技术思考。</p>
+                    <div class="about-contact-links">
+                        <a class="text-action" href="/projects/">查看作品 <span aria-hidden="true">↗</span></a>
+                        <a class="text-action" href="https://github.com/ErpanOmer" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+                        <a class="text-action" href="mailto:erpanomer@gmail.com">联系我 <span aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
             </div>
+        </header>
 
-            <div class="grid gap-4 sm:grid-cols-2">
-                {
-                    expertise.map((item) => (
-                        <div class="group relative">
-                            <div class="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 blur transition duration-500 group-hover:opacity-15"></div>
-                            <article class="relative h-full rounded-xl border border-gh-border bg-gh-surface p-5 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-gh-muted sm:p-6">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-mono text-xs font-bold text-indigo-400">
-                                        {item.index}
-                                    </span>
-                                    <span class="h-px w-10 bg-gradient-to-r from-indigo-500/70 to-transparent"></span>
-                                </div>
-                                <h3 class="mt-4 text-xl font-bold text-white">
-                                    {item.title}
-                                </h3>
-                                <p class="mt-2 text-sm leading-7 text-gh-muted">
-                                    {item.description}
-                                </p>
-                                <div class="mt-4 flex flex-wrap gap-2">
-                                    {item.tags.map((tag) => (
-                                        <span class="rounded-md bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-gh-text">
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </article>
+        <section class="about-proof" aria-label="经验与影响力">
+            <dl>
+                {proofStats.map(stat => (
+                    <div>
+                        <dt>{stat.label}</dt>
+                        <dd title={stat.exact} aria-label={`${stat.label}：${stat.exact}`}>{stat.value}</dd>
+                    </div>
+                ))}
+            </dl>
+            <p class="about-stat-note">阅读与发布统计包含本站和内容平台；发布篇数按各平台累计。</p>
+        </section>
+
+        <section class="about-expertise" id="expertise" aria-labelledby="expertise-title">
+            <div class="about-section-heading">
+                <div><p class="eyebrow">EXPERTISE</p><h2 id="expertise-title">我的工作领域</h2></div>
+                <p>从 Web 界面到服务端，覆盖产品的构建与交付。</p>
+            </div>
+            <div class="about-expertise-grid">
+                {expertise.map(item => (
+                    <article class={`expertise-card expertise-${item.kind}`}>
+                        <div class="expertise-card-top">
+                            <div class="expertise-card-heading">
+                                <p class="expertise-card-label"><span>{item.index}</span><span aria-hidden="true">/</span>{item.label}</p>
+                                <h3>{item.title}</h3>
+                            </div>
+                            <div class="expertise-artwork"><ExpertiseArtwork kind={item.kind} /></div>
                         </div>
-                    ))
-                }
+                        <p class="expertise-card-description">{item.description}</p>
+                        <ul class="expertise-card-tags" aria-label={`${item.title}相关技术`}>{item.tags.map(tag => <li>{tag}</li>)}</ul>
+                    </article>
+                ))}
             </div>
         </section>
 
-        <section class="border-t border-gh-border py-16 sm:py-20" aria-labelledby="platforms-title">
-            <div class="mb-7 sm:flex sm:items-end sm:justify-between">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-400">
-                        Publishing Network
-                    </p>
-                    <h2
-                        id="platforms-title"
-                        class="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl"
-                    >
-                        我的内容矩阵
-                    </h2>
-                </div>
-                <p class="mt-3 max-w-xl text-sm leading-6 text-gh-muted sm:mt-0 sm:text-right">
-                    本站与跨平台的持续创作，数据直接累加。
-                </p>
+        <section class="about-platforms" aria-labelledby="platforms-title">
+            <div class="about-section-heading">
+                <div><p class="eyebrow">PLATFORMS</p><h2 id="platforms-title">我的内容矩阵</h2></div>
+                <p>文章、开源项目与日常分享，也可以在这些平台找到我。</p>
             </div>
 
             <ContentPlatformGrid socialStats={socialStats} websiteStats={websiteStats} siteVisits={Astro.locals.viewCount ?? null} />
@@ -216,3 +195,84 @@ const expertise = [
         </section>
     </div>
 </BaseLayout>
+
+
+<style>
+    .about-page { padding-top:3rem; }
+    .about-intro-top { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    .about-intro-top > a { font-size:12px; }
+    .about-intro-body { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; gap:6rem; padding-block:3rem; }
+    .about-identity img { width:64px; height:64px; border:1px solid #30363d; border-radius:50%; object-fit:cover; }
+    .about-identity h1 { margin:1.25rem 0 .75rem; font-family:Arial,Helvetica,sans-serif; font-size:clamp(2.75rem,4.5vw,4rem); font-weight:400; line-height:1.1; letter-spacing:-.045em; color:#f0f3f6; }
+    .about-identity h1 > span { color:#818cf8; }
+    .about-identity > p { color:#a1aab4; font-size:14px; line-height:1.8; }
+    .about-story { max-width:31rem; }
+    .about-story > p { color:#8b949e; font-size:14px; line-height:1.9; margin-top:.875rem; text-wrap:pretty; }
+    .about-story > .about-lead { margin-top:0; color:#c9d1d9; font-size:21px; line-height:1.7; }
+    .about-contact-links { display:flex; flex-wrap:wrap; gap:1.75rem; margin-top:1.25rem; }
+    .about-contact-links > a { display:inline-flex; align-items:center; gap:.5rem; min-height:44px; font-size:13px; }
+    .about-proof { padding-block:1.75rem 1.25rem; border-block:1px solid #30363d; }
+    .about-proof dl { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .about-proof dl > div { padding-inline:2rem; border-left:1px solid #30363d; }
+    .about-proof dl > div:first-child { padding-left:0; border-left:0; }
+    .about-proof dt { color:#8b949e; font-size:12px; }
+    .about-proof dd { margin-top:.5rem; font-size:34px; line-height:1.2; font-weight:400; letter-spacing:-.035em; color:#e6edf3; font-variant-numeric:tabular-nums; }
+    .about-stat-note { margin-top:1.5rem; color:#8b949e; font-size:11px; line-height:1.8; }
+    .about-expertise { padding-block:3.5rem; scroll-margin-top:4rem; }
+    .about-platforms { padding-block:3.5rem; border-top:1px solid #30363d; }
+    .about-section-heading { display:flex; align-items:end; justify-content:space-between; gap:1.5rem; margin-bottom:1.75rem; }
+    .about-section-heading h2 { margin-top:.625rem; color:#e6edf3; font-size:26px; font-weight:500; letter-spacing:-.025em; }
+    .about-section-heading > p { max-width:23rem; color:#8b949e; font-size:13px; line-height:1.8; }
+    .about-expertise-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.25rem; }
+    .expertise-card { --expertise-accent:#a1a2ee; --expertise-tint:135,133,220; display:flex; flex-direction:column; min-width:0; padding:1.75rem; border:1px solid #30363d; border-radius:14px; background:radial-gradient(ellipse at 90% 0%,rgba(var(--expertise-tint),.09),transparent 65%),#12171f; }
+    .expertise-edge { --expertise-accent:#81b6de; --expertise-tint:94,164,213; }
+    .expertise-desktop { --expertise-accent:#b0a2dd; --expertise-tint:154,132,201; }
+    .expertise-commerce { --expertise-accent:#82baab; --expertise-tint:102,176,151; }
+    .expertise-card-top { display:grid; grid-template-columns:minmax(0,1fr) 10rem; align-items:center; gap:.75rem; margin-bottom:1rem; }
+    .expertise-card-label { display:flex; align-items:center; gap:.625rem; color:var(--expertise-accent); font-family:var(--font-mono); font-size:10px; line-height:1.8; letter-spacing:.04em; }
+    .expertise-card-label > span:first-child { color:#8b949e; }
+    .expertise-card-label > span:nth-child(2) { color:#484f58; }
+    .expertise-card h3 { margin-top:.875rem; color:#e6edf3; font-size:21px; font-weight:500; line-height:1.55; letter-spacing:-.02em; }
+    .expertise-artwork { color:var(--expertise-accent); width:100%; }
+    .expertise-card-description { color:#9ba5b1; font-size:13px; line-height:1.9; text-wrap:pretty; }
+    .expertise-card-tags { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:auto; padding-top:1.25rem; }
+    .expertise-card-tags li { padding:.25rem .625rem; border:1px solid #30363d; border-radius:5px; background:#ffffff03; color:#aeb8c5; font-size:10px; line-height:1.7; }
+    @media (max-width:1023px) {
+        .about-intro-body { gap:3rem; }
+        .expertise-card { padding:1.25rem; }
+        .expertise-card-top { grid-template-columns:minmax(0,1fr) 7rem; }
+        .expertise-card h3 { font-size:18px; }
+        .expertise-card-label { font-size:9px; gap:.375rem; }
+        .about-proof dl > div { padding-inline:1.5rem; }
+    }
+    @media (max-width:639px) {
+        .about-page { padding-top:2rem; }
+        .about-intro-body { grid-template-columns:1fr; gap:1.75rem; padding-block:2rem; }
+        .about-identity { display:grid; grid-template-columns:48px minmax(0,1fr); align-items:center; column-gap:1rem; row-gap:.375rem; }
+        .about-identity img { width:48px; height:48px; grid-row:1 / 3; }
+        .about-identity h1 { font-size:clamp(1.75rem,9vw,2.5rem); margin:0; }
+        .about-identity > p { font-size:11px; }
+        .about-story > .about-lead { font-size:17px; }
+        .about-lead-break { display:none; }
+        .about-story > p { font-size:13px; }
+        .about-contact-links { margin-top:.75rem; gap:1.5rem; }
+        .about-proof { padding-block:1.5rem 1rem; }
+        .about-proof dl { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.5rem 0; }
+        .about-proof dl > div { padding-inline:1.25rem; }
+        .about-proof dl > div:nth-child(odd) { border-left:0; padding-left:0; }
+        .about-proof dt { font-size:11px; }
+        .about-proof dd { font-size:28px; }
+        .about-stat-note { font-size:10px; margin-top:1.25rem; }
+        .about-expertise, .about-platforms { padding-block:2.5rem; }
+        .about-section-heading { display:block; margin-bottom:1.5rem; }
+        .about-section-heading h2 { font-size:23px; }
+        .about-section-heading > p { margin-top:.75rem; font-size:12px; }
+        .about-expertise-grid { grid-template-columns:1fr; gap:1rem; }
+        .expertise-card { padding:1.5rem; }
+        .expertise-card-top { grid-template-columns:minmax(0,1fr) 8rem; gap:.5rem; margin-bottom:.75rem; }
+        .expertise-card h3 { font-size:19px; }
+        .expertise-card-label { font-size:9px; }
+        .expertise-card-description { font-size:13px; }
+        .expertise-card-tags { padding-top:1rem; }
+    }
+</style>
