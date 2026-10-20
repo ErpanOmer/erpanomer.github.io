@@ -132,7 +132,8 @@ const CATALOG_CTE = `WITH static_posts AS (
         ${timestamp('p.last_modified', timestamp('p.pub_date'))}, COALESCE(p.author,'ErpanOmer'), NULLIF(p.cover,''),
         ${tagsSql("'[]'")}, MAX(COALESCE(p.views,0),0), MAX(COALESCE(p.likes,0),0)
     FROM posts p WHERE p.draft=0 AND p.deleted_at IS NULL AND ${validDbTitle}
-        AND NOT EXISTS (SELECT 1 FROM static_posts s WHERE s.slug=p.slug)
+        -- Build the static slug set once. A correlated NOT EXISTS rescans json_each for every DB row.
+        AND p.slug NOT IN (SELECT slug FROM static_posts WHERE slug IS NOT NULL)
 ), filtered AS (
     SELECT * FROM effective e
     WHERE (?2='' OR instr(lower(e.title || ' ' || e.description), lower(?2))>0
@@ -148,6 +149,48 @@ function staticJson(posts: PostSummary[]): string {
     })));
 }
 
+// Aggregate once per metadata refresh; do not rebuild the merged catalog in separate totals/tag queries.
+// Keep the purpose in the first CTE name: Insights can truncate long SQL before its final SELECT.
+const METADATA_SQL = `/* public-catalog:metadata:v2 */ ${CATALOG_CTE.replaceAll('static_posts', 'catalog_metadata_static')}
+    SELECT COUNT(*) total, COALESCE(SUM(views),0) views, COALESCE(SUM(likes),0) likes,
+        CASE WHEN ?2='' AND ?3='' THEN COUNT(*) ELSE (SELECT COUNT(*) FROM filtered) END matchingTotal,
+        (SELECT json_group_array(json_object('name',name,'count',count)) FROM (
+            SELECT name,COUNT(*) count FROM (
+                SELECT DISTINCT e.slug,trim(t.value) name FROM effective e,json_each(e.tags) t
+                WHERE t.type='text' AND trim(t.value)<>''
+            ) GROUP BY name ORDER BY count DESC,name COLLATE BINARY ASC
+        )) tags_json
+    FROM effective`;
+
+function metadataFromRow(row: Record<string, unknown>): CatalogMeta {
+    const tags = JSON.parse(String(row.tags_json || '[]')) as CatalogMeta['tags'];
+    return { total: Number(row.total), matchingTotal: Number(row.matchingTotal),
+        views: Number(row.views), likes: Number(row.likes), tagCount: tags.length, tags };
+}
+
+export interface CatalogMetadata {
+    source: CatalogPage['source'];
+    meta: CatalogMeta;
+}
+
+export async function queryPublicPostMetadata(
+    db: D1Database | undefined,
+    staticPosts: PostSummary[],
+    options: CatalogOptions,
+    config: { allowMissingTable?: boolean } = {},
+): Promise<CatalogMetadata> {
+    const fallback = (): CatalogMetadata => ({ source: 'static',
+        meta: staticPage(staticPosts, { ...options, cursor: undefined, includeMeta: true }, 1).meta! });
+    if (!db) return fallback();
+    try {
+        const [result] = await db.batch([db.prepare(METADATA_SQL).bind(staticJson(staticPosts), options.q, options.tag)]);
+        return { source: 'combined', meta: metadataFromRow(result.results[0] as Record<string, unknown>) };
+    } catch (error) {
+        if (config.allowMissingTable && /no such table:\s*posts\b/i.test(String(error))) return fallback();
+        throw error;
+    }
+}
+
 export async function queryPublicPosts(
     db: D1Database | undefined,
     staticPosts: PostSummary[],
@@ -161,18 +204,11 @@ export async function queryPublicPosts(
     const after = cursor ? `WHERE (${key} < ?4 OR (${key} = ?4 AND date_ms < ?5) OR (${key} = ?4 AND date_ms = ?5 AND slug < ?6))` : '';
     const order = `${key} DESC, date_ms DESC, slug COLLATE BINARY DESC`;
     const bindings = [staticJson(staticPosts), options.q, options.tag];
-    const pageSql = `${CATALOG_CTE} SELECT slug,title,description,date_ms,modified_ms,author,cover,tags,views,likes FROM filtered ${after} ORDER BY ${order} LIMIT ?${cursor ? 7 : 4}`;
+    const pageSql = `/* public-catalog:page:v2 */ ${CATALOG_CTE.replaceAll('static_posts', 'catalog_page_static')} SELECT slug,title,description,date_ms,modified_ms,author,cover,tags,views,likes FROM filtered ${after} ORDER BY ${order} LIMIT ?${cursor ? 7 : 4}`;
     const pageStatement = db.prepare(pageSql).bind(...bindings, ...(cursor ? [cursor.value, cursor.date, cursor.slug] : []), limit + 1);
     const statements = [pageStatement];
     if (options.includeMeta) {
-        statements.push(db.prepare(`${CATALOG_CTE}
-            SELECT COUNT(*) total, COALESCE(SUM(views),0) views, COALESCE(SUM(likes),0) likes,
-                (SELECT COUNT(*) FROM filtered) matchingTotal FROM effective`).bind(...bindings));
-        statements.push(db.prepare(`${CATALOG_CTE}
-            SELECT name,COUNT(*) count FROM (
-                SELECT DISTINCT e.slug,trim(t.value) name FROM effective e,json_each(e.tags) t
-                WHERE t.type='text' AND trim(t.value)<>''
-            ) GROUP BY name ORDER BY count DESC,name COLLATE BINARY ASC`).bind(...bindings));
+        statements.push(db.prepare(METADATA_SQL).bind(...bindings));
     }
     let results;
     try {
@@ -193,9 +229,7 @@ export async function queryPublicPosts(
     const hasMore = rows.length > limit;
     const page: CatalogPage = { items, hasMore, nextCursor: hasMore ? encodeCursor(items[items.length - 1], options, 'combined') : null, source: 'combined' };
     if (options.includeMeta) {
-        const totals = results[1].results[0] as unknown as Omit<CatalogMeta, 'tags' | 'tagCount'>;
-        const tags = results[2].results as unknown as CatalogMeta['tags'];
-        page.meta = { ...totals, tagCount: tags.length, tags };
+        page.meta = metadataFromRow(results[1].results[0] as Record<string, unknown>);
     }
     return page;
 }

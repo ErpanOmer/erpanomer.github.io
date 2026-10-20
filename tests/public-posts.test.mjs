@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { queryPublicPosts, parseCatalogOptions, CatalogInputError } from '../src/lib/public-posts.ts';
+import { queryPublicPosts, queryPublicPostMetadata, parseCatalogOptions, CatalogInputError } from '../src/lib/public-posts.ts';
 import { renderPostCard } from '../src/lib/post-card.ts';
 
 const options = (overrides={}) => ({ q:'',tag:'',sort:'latest',includeMeta:true,...overrides });
@@ -152,4 +152,29 @@ test('UTF-8 cursors support maximum-length Chinese searches, tags and long slugs
     const parsed=parseCatalogOptions(new URLSearchParams({q,tag,cursor:first.nextCursor}));
     const next=await queryPublicPosts(undefined,posts,parsed);
     assert.equal(next.items.length,1);
+});
+
+
+test('metadata-only reads match listing aggregates without selecting article summaries', async () => {
+    const { sqlite, db, insert, queries } = fixture();
+    try {
+        insert('published'); insert('draft', { draft: 1 }); insert('deleted', { deleted_at: 1 });
+        const posts = [summary('static-only'), summary('draft'), summary('deleted')];
+        const opts = options({ q: 'practical', tag: 'AI' });
+        const page = await queryPublicPosts(db, posts, opts);
+        queries.length = 0;
+        const metadata = await queryPublicPostMetadata(db, posts, opts);
+        assert.deepEqual(metadata.meta, page.meta);
+        assert.equal(metadata.source, 'combined');
+        assert.equal(queries.length, 1);
+        assert.ok(!queries[0].includes('LIMIT'));
+        assert.equal((await queryPublicPostMetadata(db, [], options({ q: 'no-match' }))).meta.matchingTotal, 0);
+    } finally { sqlite.close(); }
+    const fallback = await queryPublicPostMetadata(undefined, [summary('static')], options());
+    assert.equal(fallback.source, 'static');
+    assert.equal(fallback.meta.total, 1);
+    assert.equal(fallback.meta.views, null);
+    const missing = { prepare(sql) { return { bind() { return sql; } }; }, async batch() { throw new Error('no such table: posts'); } };
+    assert.equal((await queryPublicPostMetadata(missing, [], options(), { allowMissingTable: true })).source, 'static');
+    await assert.rejects(() => queryPublicPostMetadata(missing, [], options()), /no such table/);
 });

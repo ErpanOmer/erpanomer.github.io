@@ -1,4 +1,5 @@
 import { renderPostCard, escapeHtml } from '../lib/post-card';
+import { TOP_TAG_LIMIT, formatCatalogStat } from '../lib/catalog-presentation';
 import type { CatalogPage, CatalogOptions } from '../lib/public-posts';
 
 const initialElement = document.getElementById('catalog-initial');
@@ -46,13 +47,15 @@ function initCatalog() {
         document.getElementById('reset-filters')!.hidden = !options.q&&!options.tag&&options.sort==='latest';
         input.value = options.q; sort.value=options.sort; selectedTag.value=options.tag;
         if (page.meta) {
-            document.getElementById('expand-tags')!.hidden = page.meta.tags.length<=12;
             document.getElementById('result-count')!.textContent = `${options.tag ? `${options.tag} · ` : ''}${page.meta.matchingTotal} 篇文章`;
             for (const key of ['total','views','likes','tagCount'] as const) {
                 const value = page.meta[key];
-                document.querySelector(`[data-stat="${key}"]`)!.textContent = value===null ? '—' : value.toLocaleString('zh-CN');
+                const stat = document.querySelector<HTMLElement>(`[data-stat="${key}"]`)!;
+                stat.textContent = formatCatalogStat(value);
+                stat.title = value === null ? '数据暂不可用' : value.toLocaleString('zh-CN');
+                stat.setAttribute('aria-label', stat.title);
             }
-            tags.innerHTML = `<a href="/blog" class="catalog-tag${!options.tag?' active':''}" data-tag="">全部文章 <span>${page.meta.total}</span></a>` + page.meta.tags.map((tag,index)=>`<a href="/blog?tag=${encodeURIComponent(tag.name)}" class="catalog-tag${index>=12?' extra-tag':''}${options.tag===tag.name?' active':''}" data-tag="${escapeHtml(tag.name)}"${options.tag===tag.name?' aria-current="true"':''}>${escapeHtml(tag.name)}<span>${tag.count}</span></a>`).join('');
+            tags.innerHTML = `<a href="/blog" class="catalog-tag${!options.tag?' active':''}" data-tag="">全部文章 <span>${page.meta.total}</span></a>` + page.meta.tags.slice(0, TOP_TAG_LIMIT).map(tag=>`<a href="/blog?tag=${encodeURIComponent(tag.name)}" class="catalog-tag${options.tag===tag.name?' active':''}" data-tag="${escapeHtml(tag.name)}"${options.tag===tag.name?' aria-current="true"':''}>${escapeHtml(tag.name)}<span>${tag.count}</span></a>`).join('');
         }
         status.textContent = !page.hasMore&&page.items.length ? '已经读到这里的全部文章了。' : '';
     };
@@ -118,12 +121,6 @@ function initCatalog() {
         changeFilters();
     };
     document.getElementById('blog-app')!.addEventListener('click',tagClick);
-    document.getElementById('expand-tags')?.addEventListener('click',event=>{
-        const button=event.currentTarget as HTMLButtonElement;
-        const open=button.getAttribute('aria-expanded')!=='true';
-        button.setAttribute('aria-expanded',String(open)); tags.classList.toggle('expanded',open);
-        button.textContent=open?'收起标签':'展开全部标签';
-    });
     more.addEventListener('click',event=>{if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;event.preventDefault();void load(false);});
     window.addEventListener('popstate',()=>{
         const params=new URLSearchParams(location.search);

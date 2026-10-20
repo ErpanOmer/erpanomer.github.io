@@ -30,6 +30,8 @@
   },
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
+    "esbuild": "0.25.12",
+    "miniflare": "4.20251210.0",
     "wrangler": "^4.54.0"
   }
 }

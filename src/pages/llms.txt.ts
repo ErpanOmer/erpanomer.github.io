@@ -1,16 +1,18 @@
 import { projects } from '@/data/projects';
-import { getStaticSummaries } from '@/lib/blog-catalog';
-import { queryPublicPosts, type PostSummary } from '@/lib/public-posts';
+import { getCatalog, catalogCacheContext } from '@/lib/blog-catalog';
+import type { PostSummary } from '@/lib/public-posts';
 
 export async function GET(context: any) {
-    const staticPosts = await getStaticSummaries();
+    const catalogCache = catalogCacheContext(context.url);
     const allPosts: PostSummary[] = [];
+    let cacheable = true;
     let cursor: string | undefined;
     try {
         do {
-            const page = await queryPublicPosts(context.locals.runtime?.env?.BLOG_DB, staticPosts,
+            const page = await getCatalog(context.locals.runtime?.env?.BLOG_DB,
                 { q:'',tag:'',sort:'latest',includeMeta:false,cursor },
-                { allowMissingTable:import.meta.env.DEV,limit:100 });
+                100, catalogCache);
+            cacheable = cacheable && page.source === 'combined';
             allPosts.push(...page.items);
             cursor = page.nextCursor || undefined;
         } while (cursor);
@@ -90,6 +92,7 @@ export async function GET(context: any) {
     return new Response(content, {
         status: 200,
         headers: {
+            'Cache-Control': cacheable ? 'public, max-age=0, s-maxage=60' : 'no-store',
             "Content-Type": "text/plain; charset=utf-8",
         },
     });

@@ -5,15 +5,14 @@ import Achievements from '@/components/Achievements.astro';
 import Projects from '@/components/Projects.astro';
 import LatestPosts from '@/components/LatestPosts.astro';
 import { fetchSocialStats } from '@/lib/social-stats';
-import { getStaticSummaries } from '@/lib/blog-catalog';
-import { queryPublicPosts } from '@/lib/public-posts';
+import { getCatalog, catalogCacheContext } from '@/lib/blog-catalog';
 
 const env = Astro.locals.runtime?.env;
-const staticPosts = await getStaticSummaries();
+const catalogCache = catalogCacheContext(Astro.url);
 const [socialStats, latestResult, popularResult] = await Promise.all([
     fetchSocialStats({ transport: import.meta.env.PROD ? 'service' : 'public', serviceBinding: import.meta.env.PROD ? env?.GET_FANS_WORKER : null }),
-    queryPublicPosts(env?.BLOG_DB, staticPosts, { q:'',tag:'',sort:'latest',includeMeta:true }, { allowMissingTable:import.meta.env.DEV,limit:6 }).catch(error=>{console.error('Homepage latest posts:',error);return null;}),
-    queryPublicPosts(env?.BLOG_DB, staticPosts, { q:'',tag:'',sort:'views',includeMeta:false }, { allowMissingTable:import.meta.env.DEV,limit:9 }).catch(error=>{console.error('Homepage popular posts:',error);return null;}),
+    getCatalog(env?.BLOG_DB, { q:'',tag:'',sort:'latest',includeMeta:true }, 6, catalogCache).catch(error=>{console.error('Homepage latest posts:',error);return null;}),
+    getCatalog(env?.BLOG_DB, { q:'',tag:'',sort:'views',includeMeta:false }, 9, catalogCache).catch(error=>{console.error('Homepage popular posts:',error);return null;}),
 ]);
 ---
 <BaseLayout description="ErpanOmer，前端技术官。分享前端工程、Shopify、Cloudflare 与 AI 实践，用文章、开源项目和产品记录持续构建的过程。">

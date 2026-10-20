@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getCatalog } from '@/lib/blog-catalog';
+import { getCatalogMetadata, catalogCacheContext } from '@/lib/blog-catalog';
 import { combineInfluenceStats } from '@/lib/influence';
 import ContentPlatformGrid from "@/components/ContentPlatformGrid.astro";
 import Giscus from "@/components/Giscus.astro";
@@ -13,9 +13,9 @@ import {
 
 const [socialStats, catalogResult] = await Promise.all([
     fetchSocialStats({ transport:import.meta.env.PROD?'service':'public',serviceBinding:import.meta.env.PROD?Astro.locals.runtime?.env.GET_FANS_WORKER:null }),
-    getCatalog(Astro.locals.runtime?.env?.BLOG_DB,{q:'',tag:'',sort:'latest',includeMeta:true},1).catch(error=>{console.error('About page statistics:',error);return null;}),
+    getCatalogMetadata(Astro.locals.runtime?.env?.BLOG_DB, catalogCacheContext(Astro.url)).catch(error=>{console.error('About page statistics:',error);return null;}),
 ]);
-const websiteStats = catalogResult?.meta ?? null;
+const websiteStats = catalogResult ?? null;
 const combinedStats = combineInfluenceStats(socialStats,websiteStats);
 
 const proofStats = [
